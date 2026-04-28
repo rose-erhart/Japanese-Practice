@@ -1,0 +1,3679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#fffaf0">
+<title>Japanese Sentence Builder · JLPT Practice</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e;
+  --paper: #f5f0e8;
+  --paper2: #ede7d9;
+  --ruled: #ddd4c0;
+  --red: #c0392b;
+  --red-light: rgba(192,57,43,0.12);
+  --blue: #2c5f8a;
+  --blue-light: rgba(44,95,138,0.1);
+  --green: #1e7a4e;
+  --green-light: rgba(30,122,78,0.12);
+  --gold: #b5860d;
+  --gold-light: rgba(181,134,13,0.12);
+  --muted: #8a8070;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  background-image: linear-gradient(var(--ruled) 1px, transparent 1px);
+  background-size: 100% 36px;
+  background-position: 0 56px;
+}
+body::before {
+  content: '';
+  position: fixed;
+  left: 72px; top: 0; bottom: 0;
+  width: 2px;
+  background: rgba(192,57,43,0.25);
+  z-index: 0;
+  pointer-events: none;
+}
+.app {
+  position: relative; z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 24px 80px 88px;
+}
+header { margin-bottom: 28px; }
+.header-top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
+h1 { font-size: clamp(24px, 4vw, 38px); font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+h1 em { font-style: normal; color: var(--red); }
+.jp-title { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 18px; font-weight: 700; color: var(--muted); }
+.subtitle { font-size: 13px; color: var(--muted); font-weight: 400; }
+
+.lesson-panel {
+  background: white; border: 1.5px solid var(--ruled);
+  border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px;
+  box-shadow: 2px 2px 0 var(--ruled);
+}
+.panel-label { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+/* Info icon + tooltip for explaining the JLPT sub-level convention */
+.info-icon {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--blue);
+  cursor: help;
+  position: relative;
+  letter-spacing: 0;
+  user-select: none;
+  /* Reset button browser defaults */
+  background: none;
+  border: none;
+  padding: 4px;
+  font-family: inherit;
+  line-height: 1;
+}
+.info-icon:hover,
+.info-icon:focus {
+  color: #1a4a6e;
+  outline: none;
+}
+.info-tip {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 24px;
+  z-index: 10;
+  min-width: 320px;
+  max-width: 420px;
+  background: #fffef8;
+  border: 1.5px solid var(--ruled);
+  border-left: 4px solid var(--blue);
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.08);
+  padding: 12px 14px;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.7;
+  color: var(--ink);
+  text-transform: none;
+  white-space: normal;
+}
+.info-icon:hover .info-tip,
+.info-icon:focus .info-tip,
+.info-icon:focus-within .info-tip,
+.info-icon.active .info-tip {
+  display: block;
+}
+.info-tip strong { color: var(--blue); font-weight: 700; }
+.info-tip em { color: var(--muted); }
+.lesson-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.lesson-btn {
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600;
+  padding: 4px 11px; border-radius: 20px; border: 1.5px solid var(--ruled);
+  background: var(--paper); color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.lesson-btn:hover { border-color: var(--ink); color: var(--ink); }
+.lesson-btn.selected { background: var(--ink); border-color: var(--ink); color: white; }
+.lesson-btn.book2 { border-style: dashed; }
+.lesson-btn.book2.selected { background: var(--blue); border-color: var(--blue); border-style: solid; }
+.lesson-btn.book3 { border-style: dotted; border-width: 2px; }
+.lesson-btn.book3.selected { background: var(--gold); border-color: var(--gold); border-style: solid; color: white; }
+.grammar-unlocked {
+  padding-top: 10px; border-top: 1px dashed var(--ruled);
+  font-size: 12px; color: var(--muted); line-height: 1.8;
+}
+.grammar-unlocked strong { color: var(--ink); }
+.grammar-tag {
+  display: inline-block; background: var(--gold-light); color: var(--gold);
+  border: 1px solid rgba(181,134,13,0.3); border-radius: 4px;
+  padding: 1px 7px; font-size: 11px; font-weight: 600; margin: 1px 2px;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+}
+.grammar-tag.new { background: var(--red-light); color: var(--red); border-color: rgba(192,57,43,0.3); }
+
+.order-panel {
+  background: white; border: 1.5px solid var(--ruled);
+  border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px;
+  box-shadow: 2px 2px 0 var(--ruled);
+  border-left: 4px solid var(--red);
+}
+.order-template {
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 15px; line-height: 1.9; margin-bottom: 10px;
+  color: var(--ink); font-weight: 500;
+}
+.order-slot {
+  display: inline-block;
+  padding: 2px 8px; margin: 0 2px;
+  border-radius: 6px;
+  font-size: 13px; font-weight: 700;
+}
+.order-slot.topic    { background: rgba(44,95,138,0.12);  color: var(--blue);  }
+.order-slot.time     { background: rgba(120,60,140,0.12); color: #7a3c8c;      }
+.order-slot.place    { background: rgba(181,134,13,0.12); color: var(--gold);  }
+.order-slot.target   { background: rgba(44,95,138,0.08);  color: #2c5f8a;      }
+.order-slot.object   { background: rgba(30,122,78,0.12);  color: var(--green); }
+.order-slot.verb     { background: rgba(192,57,43,0.12);  color: var(--red);   }
+.order-particle {
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  color: var(--red); font-weight: 700; font-size: 14px;
+  margin: 0 1px;
+}
+.order-example {
+  font-size: 12px; color: var(--muted); font-style: italic;
+  padding-top: 10px; border-top: 1px dashed var(--ruled);
+  line-height: 1.7;
+}
+.order-example strong {
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  color: var(--ink); font-weight: 700; font-style: normal; font-size: 14px;
+}
+.order-disclaimer {
+  margin-top: 10px; padding: 8px 10px;
+  background: rgba(181,134,13,0.06);
+  border-left: 3px solid rgba(181,134,13,0.4);
+  border-radius: 0 4px 4px 0;
+  font-size: 11px; line-height: 1.6;
+  color: var(--muted);
+}
+.order-disclaimer strong { color: var(--gold); font-weight: 700; }
+.order-disclaimer em { color: var(--ink); font-style: italic; font-weight: 500; }
+
+.display-row {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap;
+  background: white; border: 1.5px solid var(--ruled); border-radius: var(--radius);
+  padding: 12px 16px; box-shadow: 2px 2px 0 var(--ruled);
+}
+.display-row .panel-label { margin-bottom: 0; }
+.display-toggle { display: flex; border: 1.5px solid var(--ruled); border-radius: 8px; overflow: hidden; }
+.display-toggle button {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.5px; padding: 6px 16px; background: transparent;
+  border: none; color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.display-toggle button.active { background: var(--ink); color: white; }
+.display-toggle button:not(:last-child) { border-right: 1.5px solid var(--ruled); }
+.display-note { font-size: 11px; color: var(--muted); font-style: italic; }
+
+.stats-strip { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.stat { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+.stat-val { font-size: 18px; font-weight: 800; color: var(--ink); font-family: 'DM Mono', monospace; }
+.stat-val.good { color: var(--green); }
+.stat-val.bad  { color: var(--red); }
+.stat-val.fire { color: var(--gold); }
+
+.progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.progress-track { flex: 1; height: 5px; background: var(--ruled); border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--ink); border-radius: 10px; transition: width 0.4s ease; }
+.progress-txt { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; white-space: nowrap; }
+
+.welcome {
+  background: white; border: 1.5px solid var(--ruled); border-radius: var(--radius);
+  padding: 28px 24px; box-shadow: 3px 3px 0 var(--ruled); margin-bottom: 20px;
+}
+.welcome h2 { font-size: 18px; font-weight: 800; margin-bottom: 10px; }
+.welcome p { font-size: 13px; color: var(--muted); line-height: 1.75; margin-bottom: 12px; }
+.tip { font-size: 11px; background: var(--gold-light); border: 1px dashed rgba(181,134,13,0.4); border-radius: 6px; padding: 8px 12px; color: var(--gold); margin-bottom: 16px; line-height: 1.7; }
+.btn-start {
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+  padding: 11px 26px; border-radius: 8px; background: var(--red); color: white;
+  border: none; cursor: pointer; transition: all 0.15s;
+}
+.btn-start:hover { background: #a32820; transform: translateY(-1px); }
+.attribution {
+  margin-top: 18px; padding: 10px 12px;
+  background: rgba(44,95,138,0.04);
+  border-left: 3px solid rgba(44,95,138,0.3);
+  font-size: 11px; color: var(--muted); line-height: 1.6;
+  border-radius: 0 4px 4px 0;
+}
+.attribution a { color: var(--blue); text-decoration: underline; }
+.attribution a:hover { color: #1a4a6e; }
+.lesson-btn.disabled {
+  opacity: 0.4; cursor: not-allowed; font-style: italic;
+}
+.lesson-btn.disabled:hover { background: white; color: var(--ink); border-color: var(--ruled); }
+
+.sentence-card {
+  background: white; border: 1.5px solid var(--ruled); border-radius: var(--radius);
+  padding: 22px 22px 18px; margin-bottom: 16px;
+  box-shadow: 3px 3px 0 var(--ruled);
+  transition: border-color 0.25s, box-shadow 0.25s;
+  position: relative; overflow: hidden;
+}
+.sentence-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--ink); transition: background 0.25s;
+}
+.sentence-card.correct::before { background: var(--green); }
+.sentence-card.wrong::before   { background: var(--red); }
+.sentence-card.correct { border-color: rgba(30,122,78,0.4); box-shadow: 3px 3px 0 var(--green-light); }
+.sentence-card.wrong   { border-color: rgba(192,57,43,0.4); box-shadow: 3px 3px 0 var(--red-light); }
+
+.card-meta { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.tag { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 9px; border-radius: 4px; }
+.tag-lesson  { background: var(--blue-light); color: var(--blue); border: 1px solid rgba(44,95,138,0.25); }
+.tag-grammar { background: var(--gold-light); color: var(--gold); border: 1px solid rgba(181,134,13,0.25); }
+
+.word-cards-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; }
+.word-cards { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.word-card {
+  border-radius: 8px; border: 1.5px solid; padding: 7px 13px;
+  display: flex; flex-direction: column; gap: 1px; transition: transform 0.1s;
+}
+.wc-role { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.wc-en   { font-size: 14px; font-weight: 700; }
+.wc-jp   { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 13px; color: var(--muted); }
+.wc-jp.hide { display: none; }
+
+.wc-topic    { border-color: rgba(44,95,138,0.35);   background: rgba(44,95,138,0.05);  }
+.wc-topic    .wc-role { color: var(--blue); }
+.wc-verb     { border-color: rgba(192,57,43,0.35);   background: rgba(192,57,43,0.05);  }
+.wc-verb     .wc-role { color: var(--red); }
+.wc-object   { border-color: rgba(30,122,78,0.35);   background: rgba(30,122,78,0.05);  }
+.wc-object   .wc-role { color: var(--green); }
+.wc-location { border-color: rgba(181,134,13,0.35);  background: rgba(181,134,13,0.05); }
+.wc-location .wc-role { color: var(--gold); }
+.wc-time     { border-color: rgba(120,60,140,0.35);  background: rgba(120,60,140,0.05); }
+.wc-time     .wc-role { color: #7a3c8c; }
+.wc-verb2    { border-color: rgba(170,40,40,0.25);   background: rgba(170,40,40,0.04);  }
+.wc-verb2    .wc-role { color: #a02828; }
+.wc-target   { border-color: rgba(44,95,138,0.25);   background: rgba(44,95,138,0.04);  }
+.wc-target   .wc-role { color: #2c5f8a; }
+
+.grammar-hint { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; font-style: italic; }
+.grammar-hint strong { color: var(--ink); font-style: normal; }
+
+.input-row { display: flex; gap: 10px; align-items: stretch; }
+.jp-input {
+  flex: 1; font-family: 'Zen Kaku Gothic New', monospace; font-size: 20px;
+  background: var(--paper); border: 2px solid var(--ruled); border-radius: 8px;
+  padding: 11px 15px; color: var(--ink); outline: none; transition: border-color 0.2s; letter-spacing: 1px;
+}
+.jp-input:focus { border-color: var(--ink); background: white; }
+.jp-input.correct { border-color: var(--green); background: var(--green-light); }
+.jp-input.wrong   { border-color: var(--red);   background: var(--red-light);   }
+.btn-check {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  padding: 0 18px; background: var(--ink); color: white;
+  border: none; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: all 0.15s;
+}
+.btn-check:hover { background: #2d2d50; }
+.btn-check.next-btn { background: var(--green); }
+.btn-check.next-btn:hover { background: #176040; }
+.romaji-preview { display: none; }
+
+.hint-row { margin-top: 9px; display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.btn-hint {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 20px; border: 1.5px dashed var(--muted);
+  background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.btn-hint:hover { border-color: var(--ink); color: var(--ink); }
+.hint-text {
+  font-size: 12px; color: var(--muted); font-style: italic; display: none; width: 100%; margin-top: 2px;
+  background: var(--gold-light); border: 1px dashed rgba(181,134,13,0.4);
+  border-radius: 6px; padding: 7px 11px;
+}
+.hint-text.visible { display: block; animation: fadeSlide 0.2s ease; }
+.btn-skip {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600;
+  padding: 4px 12px; border-radius: 20px; border: 1.5px solid var(--ruled);
+  background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; margin-left: auto;
+}
+.btn-skip:hover { border-color: var(--red); color: var(--red); }
+
+.feedback { margin-top: 14px; animation: fadeSlide 0.25s ease; }
+@keyframes fadeSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+.feedback-correct {
+  background: var(--green-light); border: 1.5px solid rgba(30,122,78,0.3);
+  border-radius: 8px; padding: 13px 15px; color: var(--green);
+}
+.feedback-wrong {
+  background: var(--red-light); border: 1.5px solid rgba(192,57,43,0.3);
+  border-radius: 8px; padding: 13px 15px; color: var(--red);
+}
+.fb-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+.fb-sentence { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.fb-yours { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.breakdown { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--ruled); }
+.bd-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+.bd-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: baseline; flex-wrap: wrap; font-size: 13px; }
+.bd-jp { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 16px; font-weight: 700; color: var(--ink); min-width: 90px; }
+.bd-particle {
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-size: 13px; font-weight: 700; min-width: 20px;
+  color: var(--muted);
+  padding: 0 4px; border-radius: 3px;
+}
+/* Particle-correctness states, only applied on the wrong-answer breakdown
+   to indicate whether each particle was placed correctly by the learner */
+.bd-particle-ok  { background: rgba(30,122,78,0.14);  color: var(--green); }
+.bd-particle-bad { background: rgba(192,57,43,0.14);  color: var(--red);   }
+
+/* Diff display when the user's token at a row's position differs from the
+   expected. Shown as: [struck-through user input] → [correct token] */
+.bd-user-wrong {
+  text-decoration: line-through;
+  text-decoration-color: var(--red);
+  text-decoration-thickness: 2px;
+  color: var(--red);
+  opacity: 0.75;
+}
+.bd-arrow { color: var(--muted); margin: 0 2px; font-weight: 700; }
+.bd-correct { color: var(--green); font-weight: 700; }
+.bd-role { font-size: 10px; color: var(--muted); min-width: 70px; text-transform: uppercase; letter-spacing: 1px; }
+.bd-en { color: var(--ink); }
+.bd-note { font-size: 11px; color: var(--muted); font-style: italic; }
+
+.translation-box {
+  margin-top: 10px; padding: 10px 12px;
+  background: rgba(44,95,138,0.06);
+  border: 1px solid rgba(44,95,138,0.2);
+  border-radius: 8px;
+}
+.xl-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 8px;
+}
+.xl-row { display: flex; gap: 10px; margin-bottom: 4px; font-size: 13px; align-items: baseline; flex-wrap: wrap; }
+.xl-row:last-child { margin-bottom: 0; }
+.xl-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted); min-width: 70px;
+}
+.xl-text { color: var(--ink); flex: 1; }
+.xl-text.literal { font-family: 'DM Mono', monospace; font-size: 12px; color: #555; font-style: italic; }
+.xl-text.natural { font-weight: 500; }
+
+.completion {
+  background: white; border: 1.5px solid var(--ruled); border-radius: var(--radius);
+  padding: 36px 28px; text-align: center; box-shadow: 3px 3px 0 var(--ruled); display: none;
+}
+.completion.visible { display: block; animation: fadeSlide 0.3s ease; }
+.completion-score { font-size: 68px; font-weight: 800; color: var(--ink); font-family: 'DM Mono', monospace; line-height: 1; margin: 14px 0 4px; }
+.completion-label { font-size: 12px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+.completion-msg { font-size: 15px; color: var(--ink); margin-bottom: 24px; }
+
+.hidden { display: none !important; }
+
+@media (max-width: 600px) {
+  body::before { left: 44px; }
+  .app { padding-left: 56px; padding-right: 14px; }
+}
+/* ════════════════════════════════════════════════════════════════
+   MOBILE-FRIENDLY STYLES
+   ════════════════════════════════════════════════════════════════
+   Triggered at ≤640px wide. Goals:
+   - Single-column layout, generous tap targets (≥44px)
+   - Collapsed panels by default to keep cards + input above the fold
+   - Sticky input area at the bottom so it stays accessible while
+     scrolling through long breakdowns
+   - Larger Japanese text for readability on small screens
+   - Respect iOS safe-area insets (notch/home indicator)
+   - Tooltips and hover effects converted to tap-to-toggle
+*/
+@media (max-width: 640px) {
+  body {
+    /* Allow content to extend into safe areas while preserving padding */
+    padding: 0;
+    padding-top: env(safe-area-inset-top, 0);
+  }
+  .app {
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0));
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  /* Header — compact */
+  header { margin-bottom: 14px; }
+  .header-top h1 { font-size: 22px; }
+  .header-top .jp-title { font-size: 14px; }
+  .subtitle { font-size: 11px; }
+
+  /* Level selector — wrap nicely, larger tap targets */
+  .lesson-grid {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .lesson-btn {
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 13px;
+    flex: 1 1 auto;
+    min-width: 64px;
+  }
+
+  /* Collapsible panels: default to closed on mobile */
+  .panel-collapsible > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 8px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .panel-collapsible > summary::-webkit-details-marker { display: none; }
+  .panel-collapsible > summary::after {
+    content: '▾';
+    float: right;
+    font-size: 14px;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .panel-collapsible[open] > summary::after { transform: rotate(180deg); }
+  .panel-collapsible > summary:hover { color: var(--ink); }
+
+  /* Word cards: 2-column grid on mobile, more readable */
+  .cards-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .card {
+    min-height: 60px;
+    padding: 10px 12px;
+  }
+  .card-role { font-size: 9px; }
+  .card-en { font-size: 14px; }
+  .card-kana { font-size: 13px; margin-top: 2px; }
+
+  /* Question header tags */
+  .q-tags { gap: 6px; }
+  .tag { font-size: 10px; padding: 3px 8px; }
+
+  /* Input area — bigger and sticky */
+  .input-wrap {
+    position: sticky;
+    bottom: 0;
+    background: var(--paper);
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0)) 0;
+    margin: 12px -12px 0 -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-top: 1px solid var(--ruled);
+    z-index: 5;
+  }
+  .input-row { gap: 8px; }
+  .jp-input {
+    font-size: 16px;  /* Prevents iOS auto-zoom on focus */
+    padding: 12px 14px;
+    min-height: 48px;
+  }
+  .btn-check {
+    min-height: 48px;
+    padding: 0 18px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  /* Hint row buttons */
+  .hint-row { flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .btn-hint, .btn-skip {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  /* Display toggle row */
+  .display-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .display-row .panel-label { margin-bottom: 4px; }
+  .display-toggle, .translation-toggle {
+    width: 100%;
+    display: flex;
+  }
+  .display-toggle button, .translation-toggle button {
+    flex: 1;
+    min-height: 40px;
+    font-size: 12px;
+  }
+
+  /* Feedback panel — looser layout */
+  .feedback { padding: 14px; }
+  .fb-sentence { font-size: 19px; line-height: 1.5; }
+  .fb-yours { font-size: 13px; }
+
+  /* Translation box */
+  .translation-box { padding: 10px 12px; }
+  .xl-text.natural { font-size: 14px; }
+  .xl-text.literal { font-size: 12px; }
+
+  /* Breakdown — stack columns vertically per row */
+  .breakdown { padding-top: 6px; }
+  .bd-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) auto minmax(0, 1fr);
+    gap: 6px 8px;
+    padding: 6px 0;
+    border-bottom: 1px dotted rgba(0,0,0,0.08);
+    align-items: baseline;
+  }
+  .bd-row:last-child { border-bottom: none; }
+  .bd-jp { font-size: 14px; min-width: 0; }
+  .bd-particle { font-size: 13px; }
+  .bd-role { font-size: 9px; letter-spacing: 1.5px; }
+  .bd-en { grid-column: 1 / -1; font-size: 12px; color: var(--muted); margin-left: 0; }
+  .bd-note { display: none; }  /* Notes too noisy on mobile */
+
+  /* Word order panel — when expanded */
+  .order-template { font-size: 12px; line-height: 1.7; }
+  .order-example { font-size: 13px; }
+
+  /* Word order disclaimer — collapsed by default */
+  .order-disclaimer { font-size: 10px; padding: 8px 10px; }
+
+  /* Welcome screen */
+  .welcome { padding: 16px; }
+  .welcome h2 { font-size: 17px; }
+  .welcome p { font-size: 13px; }
+  .tip { font-size: 11px; padding: 10px; }
+  .btn-start { min-height: 48px; padding: 12px 20px; font-size: 14px; width: 100%; }
+  .attribution { font-size: 10px; padding: 10px 12px; }
+
+  /* Info tooltip — needs tap behavior on touch */
+  .info-icon { padding: 4px; }
+  .info-tip {
+    /* On mobile, position fixed at bottom for readability */
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 80px;
+    top: auto;
+    min-width: 0;
+    max-width: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  /* Ensure tooltip works via tap (focus-within) on mobile */
+  .info-icon:focus-within .info-tip { display: block; }
+
+  /* Stats strip — compact */
+  .stats-strip { font-size: 10px; gap: 10px; }
+  .stat-block { padding: 6px 8px; }
+
+  /* Page-edge red bars decoration — reduce */
+  body::before, body::after { display: none; }
+}
+
+/* iPad-portrait + small tablet — keep desktop-ish but tighter */
+@media (min-width: 641px) and (max-width: 900px) {
+  .app { padding: 24px 20px; }
+  .cards-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+}
+
+/* Touch device: convert all hover-only effects into focus/active */
+@media (hover: none) {
+  .info-icon:hover .info-tip { display: none; }
+  .info-icon:focus .info-tip,
+  .info-icon:focus-within .info-tip,
+  .info-icon.active .info-tip { display: block; }
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="header-top">
+      <h1>Sentence <em>Builder</em></h1>
+      <span class="jp-title">文作り練習</span>
+    </div>
+    <p class="subtitle">Build grammatically correct Japanese sentences · JLPT N5 &amp; N4 · Frequency-based vocabulary</p>
+  </header>
+
+  <div class="lesson-panel">
+    <div class="panel-label">
+      Select your JLPT level (unlocks grammar &amp; vocabulary up to that level)
+      <button type="button" class="info-icon" aria-describedby="sublevel-info"
+        onclick="this.classList.toggle('active')" aria-label="About JLPT sub-levels">ⓘ
+        <span class="info-tip" id="sublevel-info" role="tooltip">
+          <strong>About the sub-levels (N5.1 / N5.2 / N5.3…)</strong><br>
+          Official JLPT only has N5, N4, N3, N2, N1 — the sub-levels here are a suggested learning progression we've added to introduce grammar gradually.
+          <br><br>
+          <strong>N5.1</strong> · copula, existence, basic particles<br>
+          <strong>N5.2</strong> · past tense, に/で particles, time words<br>
+          <strong>N5.3</strong> · adjectives, ～たい, ～てください<br>
+          <strong>N4.1</strong> · て-form family, ～ている, ～ないで<br>
+          <strong>N4.2</strong> · potential form, volitional ～ましょう<br>
+          <strong>N4.3</strong> · giving/receiving, ～たら conditional<br>
+          <strong>N3.1</strong> · ～なら, ～と, ～かもしれない, ～でしょう, ～ながら, ～たことがある, ～ようになる<br>
+          <strong>N3.2</strong> · passive form 受身 (る→られる, う→a-row+れる)<br>
+          <strong>N3.3</strong> · causative 使役 + causative-passive 使役受身<br>
+          <strong>N3.4</strong> · honorific/humble 敬語 (お～になる、お～する)
+          <br><br>
+          <em>Studying for the N5 exam? You'll want to cover all of N5.1 → N5.3. Same logic for N4 and N3.</em>
+        </span>
+      </button>
+    </div>
+    <div class="lesson-grid" id="lesson-grid"></div>
+    <div class="grammar-unlocked" id="grammar-unlocked"></div>
+  </div>
+
+  <details class="order-panel panel-collapsible" id="order-panel" open>
+    <summary class="panel-label">Canonical Japanese word order for this level</summary>
+    <div class="order-template" id="order-template"></div>
+    <div class="order-example" id="order-example"></div>
+    <div class="order-disclaimer">
+      <strong>Heads up:</strong> Japanese word order is actually flexible — many other arrangements
+      are grammatically valid. For drill purposes this app enforces the <em>canonical</em> or "neutral"
+      order shown above, which is what textbooks and teachers typically present as standard. As you
+      advance, you'll encounter real-world sentences that rearrange these elements for emphasis, topic
+      shift, or style — and that's fine. This app is just training your default instinct.
+    </div>
+  </details>
+
+  <div class="display-row">
+    <div class="panel-label">Word cards:</div>
+    <div class="display-toggle">
+      <button id="btn-en"   class="active" onclick="setDisplay('en')">English only</button>
+      <button id="btn-kana" onclick="setDisplay('kana')">English + Hiragana</button>
+    </div>
+    <span class="display-note">English only = vocab recall · + Hiragana = reading practice</span>
+  </div>
+
+  <div class="display-row">
+    <div class="panel-label">Show translation:</div>
+    <div class="display-toggle">
+      <button id="btn-xl-on"  class="active" onclick="setTranslation(true)">On</button>
+      <button id="btn-xl-off" onclick="setTranslation(false)">Off</button>
+    </div>
+    <span class="display-note">Literal + natural English shown after you submit</span>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat"><span class="stat-val good" id="s-correct">0</span>&nbsp;correct</div>
+    <div class="stat"><span class="stat-val bad"  id="s-wrong">0</span>&nbsp;wrong</div>
+    <div class="stat"><span class="stat-val fire" id="s-streak">0</span>&nbsp;streak</div>
+    <div class="stat"><span class="stat-val"      id="s-acc">—</span>&nbsp;accuracy</div>
+  </div>
+
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="progress-txt" id="prog-txt">0 / 0</div>
+  </div>
+
+  <div class="welcome" id="welcome">
+    <h2>How it works</h2>
+    <p>You'll see a set of colour-coded word cards (topic, verb, object, location, time, etc.). Type the complete Japanese sentence in romaji — it converts to hiragana or katakana live.</p>
+    <div class="tip">
+      💡 <strong>Input tips:</strong><br>
+      <strong>lowercase</strong> = hiragana (<em>tabemasu</em> → たべます)<br>
+      <strong>UPPERCASE</strong> = katakana (<em>RA-MEN</em> → ラーメン, <em>MEARI-</em> → メアリー)<br>
+      Long vowel mark ー: type <strong>-</strong> (hyphen) after an UPPERCASE mora (<em>KO-HI-</em> → コーヒー)<br>
+      ん: always type <strong>nn</strong> (<em>nihonn</em> → にほん, <em>sannin</em> → さんにん)<br>
+      Double consonant = っ/ッ (<em>kitte</em> → きって)<br>
+      Particles: を = <strong>wo</strong> · は = <strong>ha</strong> · へ = <strong>he</strong>
+    </div>
+    <p>Japanese sentences follow a strict canonical order — see the guide above. Choose your JLPT level, then start!</p>
+    <button class="btn-start" onclick="startSession()">Start Practice →</button>
+    <div class="attribution">
+      <strong>Attribution:</strong> Grammar progression informed by
+      <a href="https://guidetojapanese.org/learn/grammar" target="_blank" rel="noopener">Tae Kim's Guide to Japanese Grammar</a>
+      (CC BY 3.0), structured around JLPT N5/N4 levels.
+      Vocabulary is hand-curated for grammar-pattern compatibility, with selection
+      weighted by JPDB v2.2 frequency rankings (CC BY) so high-frequency words appear
+      more often in generated sentences.
+      All example sentences are procedurally generated and original.
+    </div>
+  </div>
+
+  <div id="exercise-wrap" class="hidden">
+    <div class="sentence-card" id="sentence-card">
+      <div class="card-meta">
+        <span class="tag tag-lesson"  id="tag-lesson">N5.1</span>
+        <span class="tag tag-grammar" id="tag-grammar">～ます</span>
+      </div>
+      <div class="word-cards-label">Build a sentence using all of these words:</div>
+      <div class="word-cards" id="word-cards"></div>
+      <div class="grammar-hint" id="grammar-hint"></div>
+      <div class="input-row">
+        <input type="text" class="jp-input" id="jp-input"
+          placeholder="Type in romaji or use a Japanese keyboard…"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          enterkeyhint="send" lang="ja"
+          onkeydown="handleKey(event)"
+          oninput="handleInput(event)"
+          oncompositionstart="handleCompStart(event)"
+          oncompositionend="handleCompEnd(event)">
+        <button class="btn-check" id="btn-check" onclick="checkAnswer()">Check ↵</button>
+      </div>
+      <div class="hint-row">
+        <button class="btn-hint" onclick="toggleHint()">💡 Hint</button>
+        <div class="hint-text" id="hint-text"></div>
+        <button class="btn-skip" onclick="skipQ()">Skip →</button>
+      </div>
+      <div id="feedback"></div>
+    </div>
+  </div>
+
+  <div class="completion" id="completion">
+    <div style="font-size:34px">🎊</div>
+    <div class="completion-score" id="comp-score">—</div>
+    <div class="completion-label">accuracy</div>
+    <div class="completion-msg" id="comp-msg"></div>
+    <button class="btn-start" onclick="startSession()">Practice Again</button>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  ROMAJI → HIRAGANA / KATAKANA
+//
+//  Rules:
+//   • Lowercase romaji → hiragana (na → な)
+//   • Uppercase romaji → katakana (NA → ナ)
+//   • Hyphen `-` after a katakana mora → ー (chōonpu / long vowel mark)
+//   • Hyphen `-` after a hiragana mora → passes through unchanged
+//   • Mixed case within one word works (e.g. MEARI- for メアリー)
+//
+//  'n' becomes ん/ン only when:
+//   - followed by another consonant (not y), OR
+//   - followed by end-of-string, OR
+//   - followed by a space
+//  Use 'nn'/'NN' to force ん/ン before a vowel.
+// ══════════════════════════════════════════════
+
+// Hiragana combo table (lowercase keys)
+const KANA_HIRA = {
+  'ttsu':'っつ',
+  'sha':'しゃ','shi':'し','shu':'しゅ','she':'しぇ','sho':'しょ',
+  'chi':'ち','cha':'ちゃ','chu':'ちゅ','che':'ちぇ','cho':'ちょ',
+  'tsu':'つ',
+  'kya':'きゃ','kyu':'きゅ','kyo':'きょ',
+  'gya':'ぎゃ','gyu':'ぎゅ','gyo':'ぎょ',
+  'nya':'にゃ','nyu':'にゅ','nyo':'にょ',
+  'hya':'ひゃ','hyu':'ひゅ','hyo':'ひょ',
+  'bya':'びゃ','byu':'びゅ','byo':'びょ',
+  'pya':'ぴゃ','pyu':'ぴゅ','pyo':'ぴょ',
+  'mya':'みゃ','myu':'みゅ','myo':'みょ',
+  'rya':'りゃ','ryu':'りゅ','ryo':'りょ',
+  'dya':'ぢゃ','dyu':'ぢゅ','dyo':'ぢょ',
+  'tya':'ちゃ','tyu':'ちゅ','tyo':'ちょ',
+  'ja':'じゃ','ji':'じ','ju':'じゅ','je':'じぇ','jo':'じょ',
+  'fa':'ふぁ','fi':'ふぃ','fu':'ふ','fe':'ふぇ','fo':'ふぉ',
+  'ka':'か','ki':'き','ku':'く','ke':'け','ko':'こ',
+  'ga':'が','gi':'ぎ','gu':'ぐ','ge':'げ','go':'ご',
+  'sa':'さ','si':'し','su':'す','se':'せ','so':'そ',
+  'za':'ざ','zi':'じ','zu':'ず','ze':'ぜ','zo':'ぞ',
+  'ta':'た','ti':'ち','tu':'つ','te':'て','to':'と',
+  'da':'だ','di':'ぢ','du':'づ','de':'で','do':'ど',
+  'na':'な','ni':'に','nu':'ぬ','ne':'ね','no':'の',
+  'ha':'は','hi':'ひ','hu':'ふ','he':'へ','ho':'ほ',
+  'ba':'ば','bi':'び','bu':'ぶ','be':'べ','bo':'ぼ',
+  'pa':'ぱ','pi':'ぴ','pu':'ぷ','pe':'ぺ','po':'ぽ',
+  'ma':'ま','mi':'み','mu':'む','me':'め','mo':'も',
+  'ya':'や','yu':'ゆ','yo':'よ',
+  'ra':'ら','ri':'り','ru':'る','re':'れ','ro':'ろ',
+  'wa':'わ','wi':'ゐ','we':'ゑ','wo':'を',
+  'a':'あ','i':'い','u':'う','e':'え','o':'お',
+};
+
+// Katakana combo table — same keys, katakana values
+const KANA_KATA = {
+  'ttsu':'ッツ',
+  'sha':'シャ','shi':'シ','shu':'シュ','she':'シェ','sho':'ショ',
+  'chi':'チ','cha':'チャ','chu':'チュ','che':'チェ','cho':'チョ',
+  'tsu':'ツ',
+  'kya':'キャ','kyu':'キュ','kyo':'キョ',
+  'gya':'ギャ','gyu':'ギュ','gyo':'ギョ',
+  'nya':'ニャ','nyu':'ニュ','nyo':'ニョ',
+  'hya':'ヒャ','hyu':'ヒュ','hyo':'ヒョ',
+  'bya':'ビャ','byu':'ビュ','byo':'ビョ',
+  'pya':'ピャ','pyu':'ピュ','pyo':'ピョ',
+  'mya':'ミャ','myu':'ミュ','myo':'ミョ',
+  'rya':'リャ','ryu':'リュ','ryo':'リョ',
+  'dya':'ヂャ','dyu':'ヂュ','dyo':'ヂョ',
+  'tya':'チャ','tyu':'チュ','tyo':'チョ',
+  'ja':'ジャ','ji':'ジ','ju':'ジュ','je':'ジェ','jo':'ジョ',
+  'fa':'ファ','fi':'フィ','fu':'フ','fe':'フェ','fo':'フォ',
+  'ka':'カ','ki':'キ','ku':'ク','ke':'ケ','ko':'コ',
+  'ga':'ガ','gi':'ギ','gu':'グ','ge':'ゲ','go':'ゴ',
+  'sa':'サ','si':'シ','su':'ス','se':'セ','so':'ソ',
+  'za':'ザ','zi':'ジ','zu':'ズ','ze':'ゼ','zo':'ゾ',
+  'ta':'タ','ti':'チ','tu':'ツ','te':'テ','to':'ト',
+  'da':'ダ','di':'ヂ','du':'ヅ','de':'デ','do':'ド',
+  'na':'ナ','ni':'ニ','nu':'ヌ','ne':'ネ','no':'ノ',
+  'ha':'ハ','hi':'ヒ','hu':'フ','he':'ヘ','ho':'ホ',
+  'ba':'バ','bi':'ビ','bu':'ブ','be':'ベ','bo':'ボ',
+  'pa':'パ','pi':'ピ','pu':'プ','pe':'ペ','po':'ポ',
+  'ma':'マ','mi':'ミ','mu':'ム','me':'メ','mo':'モ',
+  'ya':'ヤ','yu':'ユ','yo':'ヨ',
+  'ra':'ラ','ri':'リ','ru':'ル','re':'レ','ro':'ロ',
+  'wa':'ワ','wi':'ヰ','we':'ヱ','wo':'ヲ',
+  'a':'ア','i':'イ','u':'ウ','e':'エ','o':'オ',
+};
+
+const KANA_KEYS = Object.keys(KANA_HIRA).sort((a,b) => b.length - a.length);
+const DBL_CONS  = new Set(['k','g','s','z','t','d','h','b','p','m','r','f','c','j','v','l','q','x']);
+
+// Katakana unicode range — used to detect previous char's script for hyphen handling
+function isKatakana(ch) {
+  if (!ch) return false;
+  const code = ch.charCodeAt(0);
+  // Katakana block (U+30A0 – U+30FF) including ー (U+30FC)
+  return code >= 0x30A0 && code <= 0x30FF;
+}
+
+function toKana(input) {
+  let out = '';
+  let i = 0;
+
+  while (i < input.length) {
+    const ch = input[i];
+
+    // Hyphen: produces ー only when previous character in OUTPUT is katakana
+    if (ch === '-') {
+      const prev = out[out.length - 1];
+      if (isKatakana(prev)) {
+        out += 'ー';
+      } else {
+        out += '-';
+      }
+      i++;
+      continue;
+    }
+
+    // Space and other non-letter chars pass through
+    if (!/[a-zA-Z]/.test(ch)) {
+      out += ch;
+      i++;
+      continue;
+    }
+
+    // Determine script from current char's case
+    const isUpper = ch === ch.toUpperCase() && ch !== ch.toLowerCase();
+    const table = isUpper ? KANA_KATA : KANA_HIRA;
+    const sokuon = isUpper ? 'ッ' : 'っ';
+    const nChar  = isUpper ? 'ン' : 'ん';
+
+    const lowerCh  = ch.toLowerCase();
+    const nextCh   = input[i+1];
+    const lowerNx  = nextCh ? nextCh.toLowerCase() : '';
+
+    // 1. Double consonant → small tsu (kk, ss, etc. — NOT nn)
+    if (DBL_CONS.has(lowerCh) && lowerNx === lowerCh) {
+      out += sokuon;
+      i++; // consume one; the second processes normally
+      continue;
+    }
+
+    // 2. Explicit 'nn' or 'NN' → ん/ン
+    if (lowerCh === 'n' && lowerNx === 'n') {
+      out += nChar;
+      i += 2;
+      continue;
+    }
+
+    // 3. Try greedy combo match — use LOWERCASE lookup but OUTPUT from active table
+    let matched = false;
+    // Build lowercase slice of input starting at i
+    const rest = input.slice(i).toLowerCase();
+    for (const key of KANA_KEYS) {
+      if (rest.startsWith(key)) {
+        // Verify that all characters of this key were the SAME case as the starting char
+        // (mixed case within a single mora doesn't make sense; we use starting char's case)
+        out += table[key];
+        i += key.length;
+        matched = true;
+        break;
+      }
+    }
+    if (matched) continue;
+
+    // 4. Lone 'n'/'N' — ONLY 'nn' produces ん. A single 'n' is left
+    //    as an unconverted character (displayed as-is). This avoids the
+    //    premature conversion of 'n' to ん when the user is still typing.
+    if (lowerCh === 'n') {
+      out += ch;
+      i++;
+      continue;
+    }
+
+    // 5. Pass through (shouldn't really hit this for valid romaji)
+    out += ch;
+    i++;
+  }
+  return out;
+}
+
+// ══════════════════════════════════════════════
+//  CONJUGATION
+// ══════════════════════════════════════════════
+function masuStem(v) {
+  if (v.type === 'ru') return v.kana.slice(0,-1);
+  if (v.type === 'irr') {
+    if (v.kana.endsWith('する')) return v.kana.slice(0,-2)+'し';
+    if (v.kana === 'くる') return 'き';
+  }
+  const last = v.kana.slice(-1);
+  const m = {う:'い',く:'き',ぐ:'ぎ',す:'し',つ:'ち',ぬ:'に',ぶ:'び',む:'み',る:'り'};
+  return v.kana.slice(0,-1)+(m[last]||'');
+}
+const masu = v => masuStem(v)+'ます';
+const masen = v => masuStem(v)+'ません';
+const mashita = v => masuStem(v)+'ました';
+const masendeshita = v => masuStem(v)+'ませんでした';
+function teForm(v) {
+  if (v.type==='ru') return v.kana.slice(0,-1)+'て';
+  if (v.type==='irr') {
+    if (v.kana.endsWith('する')) return v.kana.slice(0,-2)+'して';
+    if (v.kana==='くる') return 'きて';
+  }
+  if (v.kana==='いく') return 'いって';
+  const last = v.kana.slice(-1);
+  const m = {く:'いて',ぐ:'いで',す:'して',つ:'って',ぬ:'んで',ぶ:'んで',む:'んで',る:'って',う:'って'};
+  return v.kana.slice(0,-1)+(m[last]||'て');
+}
+function naiForm(v) {
+  if (v.type==='ru') return v.kana.slice(0,-1)+'ない';
+  if (v.type==='irr') {
+    if (v.kana.endsWith('する')) return v.kana.slice(0,-2)+'しない';
+    if (v.kana==='くる') return 'こない';
+  }
+  if (v.kana==='ある') return 'ない';
+  const last = v.kana.slice(-1);
+  const m = {う:'わ',く:'か',ぐ:'が',す:'さ',つ:'た',ぬ:'な',ぶ:'ば',む:'ま',る:'ら'};
+  return v.kana.slice(0,-1)+(m[last]||'あ')+'ない';
+}
+function potForm(v) {
+  if (v.type==='ru') return v.kana.slice(0,-1)+'られます';
+  if (v.type==='irr') {
+    if (v.kana.endsWith('する')) return v.kana.slice(0,-2)+'できます';
+    if (v.kana==='くる') return 'こられます';
+  }
+  const last = v.kana.slice(-1);
+  const m = {う:'え',く:'け',ぐ:'げ',す:'せ',つ:'て',ぬ:'ね',ぶ:'べ',む:'め',る:'れ'};
+  return v.kana.slice(0,-1)+(m[last]||'え')+'ます';
+}
+
+// Volitional polite form: ます-stem + ましょう  ("let's V")
+const mashou = v => masuStem(v)+'ましょう';
+
+// Conditional たら form: built from past plain form + ら
+// Here we produce the polite past ました and append ら → ましたら sounds wrong
+// for casual speech, but the FULL たら conditional uses the PLAIN past form.
+// For this practice app we use the plain past + ら which is standard.
+function taForm(v) {
+  // Get plain past stem, then add ら
+  if (v.type==='ru') return v.kana.slice(0,-1)+'た';
+  if (v.type==='irr') {
+    if (v.kana.endsWith('する')) return v.kana.slice(0,-2)+'した';
+    if (v.kana==='くる') return 'きた';
+  }
+  if (v.kana==='いく') return 'いった';
+  const last = v.kana.slice(-1);
+  const m = {く:'いた',ぐ:'いだ',す:'した',つ:'った',ぬ:'んだ',ぶ:'んだ',む:'んだ',る:'った',う:'った'};
+  return v.kana.slice(0,-1)+(m[last]||'た');
+}
+const taraForm = v => taForm(v)+'ら';
+
+// nai-form: plain negative non-past. Drop final う/る and replace with わ-row + ない.
+//   食べる → 食べない (ru: drop る → ない)
+//   飲む   → 飲まない (u:  ま-row + ない)
+//   する   → しない
+//   くる   → こない
+//   ある   → ない (irregular)
+function naiForm(v) {
+  if (v.kana === 'ある') return 'ない';
+  if (v.type === 'ru') return v.kana.slice(0,-1) + 'ない';
+  if (v.type === 'irr') {
+    if (v.kana.endsWith('する')) return v.kana.slice(0,-2) + 'しない';
+    if (v.kana === 'くる') return 'こない';
+  }
+  // u-verbs: replace last う-row mora with corresponding あ-row + ない
+  // Note: う → わ (special), not あ — handles 買う → 買わない
+  const last = v.kana.slice(-1);
+  const m = {う:'わ',く:'か',ぐ:'が',す:'さ',つ:'た',ぬ:'な',ぶ:'ば',む:'ま',る:'ら'};
+  return v.kana.slice(0,-1) + (m[last] || 'わ') + 'ない';
+}
+
+// Passive form (受身): plain non-past passive. "is/was Vd"
+//   食べる → 食べられる (ru: drop る + られる)
+//   飲む   → 飲まれる (u: a-row + れる)
+//   する   → される
+//   くる   → こられる
+function passiveForm(v) {
+  if (v.type === 'ru') return v.kana.slice(0,-1) + 'られる';
+  if (v.type === 'irr') {
+    if (v.kana.endsWith('する')) return v.kana.slice(0,-2) + 'される';
+    if (v.kana === 'くる') return 'こられる';
+  }
+  const last = v.kana.slice(-1);
+  const m = {う:'わ',く:'か',ぐ:'が',す:'さ',つ:'た',ぬ:'な',ぶ:'ば',む:'ま',る:'ら'};
+  return v.kana.slice(0,-1) + (m[last] || 'わ') + 'れる';
+}
+// Polite passive: drop る from passive plain form, add ます
+const passiveMasu = v => passiveForm(v).slice(0,-1) + 'ます';
+// Polite passive past: drop る, add ました
+const passiveMashita = v => passiveForm(v).slice(0,-1) + 'ました';
+
+// Causative form (使役): plain non-past causative. "make/let V"
+//   食べる → 食べさせる (ru: drop る + させる)
+//   飲む   → 飲ませる  (u: a-row + せる)
+//   する   → させる
+//   くる   → こさせる
+function causativeForm(v) {
+  if (v.type === 'ru') return v.kana.slice(0,-1) + 'させる';
+  if (v.type === 'irr') {
+    if (v.kana.endsWith('する')) return v.kana.slice(0,-2) + 'させる';
+    if (v.kana === 'くる') return 'こさせる';
+  }
+  const last = v.kana.slice(-1);
+  const m = {う:'わ',く:'か',ぐ:'が',す:'さ',つ:'た',ぬ:'な',ぶ:'ば',む:'ま',る:'ら'};
+  return v.kana.slice(0,-1) + (m[last] || 'わ') + 'せる';
+}
+const causativeMasu = v => causativeForm(v).slice(0,-1) + 'ます';
+
+// Causative-passive (使役受身): "be made to V"
+//   食べる → 食べさせられる (causative + passive of られる-class)
+//   飲む   → 飲ませられる   (or shortened 飲まされる, but we use the long form
+//                            for clarity; the short form drops せ → さ)
+//   する   → させられる
+//   くる   → こさせられる
+function causativePassiveForm(v) {
+  // Take causative form and apply passive transformation to the result
+  // Causative ends in -せる (always ru-class), so passive is -せられる
+  return causativeForm(v).slice(0,-1) + 'られる';
+}
+const causativePassiveMasu = v => causativePassiveForm(v).slice(0,-1) + 'ます';
+
+// ══════════════════════════════════════════════
+//  KEIGO (敬語) helpers — sonkeigo (尊敬語) + kenjougo (謙譲語)
+// ══════════════════════════════════════════════
+// Sonkeigo: honorific form, used to elevate the subject (someone respected).
+// Kenjougo: humble form, used to lower oneself (the speaker).
+// Many common verbs have completely irregular substitutions; the rest follow
+// regular patterns:
+//   sonkeigo regular: お + ます-stem + になる → なります
+//   kenjougo regular: お + ます-stem + する → します
+//
+// Maps return the polite form (∴ already conjugated to ます). If a verb has
+// no irregular form, regularSonkeigo() / regularKenjougo() builds the regular.
+
+// Irregular sonkeigo substitutions. Returns ます-form directly.
+const SONKEIGO_IRREG = {
+  'する':       'なさいます',         // do
+  'たべる':     '召しあがります',     // eat
+  'のむ':       '召しあがります',     // drink
+  'みる':       'ごらんになります',   // see
+  'いく':       'いらっしゃいます',   // go
+  'くる':       'いらっしゃいます',   // come
+  'いる':       'いらっしゃいます',   // be (animate)
+  'いう':       'おっしゃいます',     // say
+  'くれる':     'くださいます',       // give (to in-group)
+  'しる':       'ごぞんじです',       // know (uses copula)
+  'べんきょうする': 'べんきょうなさいます',
+  'りょこうする': 'りょこうなさいます',
+  'そつぎょうする': 'そつぎょうなさいます',
+};
+// Irregular kenjougo substitutions. Returns ます-form directly.
+const KENJOUGO_IRREG = {
+  'する':       'いたします',         // do
+  'たべる':     'いただきます',       // eat
+  'のむ':       'いただきます',       // drink
+  'もらう':     'いただきます',       // receive
+  'みる':       'はいけんします',     // see (formal)
+  'いく':       'まいります',         // go
+  'くる':       'まいります',         // come
+  'いう':       'もうします',         // say
+  'あげる':     'さしあげます',       // give
+  'しる':       'ぞんじます',         // know
+  'あう':       'おめにかかります',   // meet
+  'べんきょうする': 'べんきょういたします',
+  'りょこうする': 'りょこういたします',
+  'そつぎょうする': 'そつぎょういたします',
+};
+
+// Regular sonkeigo (お + ます-stem + になります). Only valid for u/ru-verbs
+// with multi-mora ます-stems. Single-mora stems (e.g. みる→み, ねる→ね) work
+// grammatically but sound stilted; for those, we prefer the irregular if any.
+function regularSonkeigo(v) {
+  const stem = masuStem(v);
+  return 'お' + stem + 'になります';
+}
+// Regular kenjougo (お + ます-stem + します). Same caveats.
+function regularKenjougo(v) {
+  const stem = masuStem(v);
+  return 'お' + stem + 'します';
+}
+
+// Returns true if the verb has an irregular keigo form OR if the regular
+// form is reasonably natural (multi-mora stem).
+function isKeigoCompatible(v) {
+  // Existence ある has no clean keigo form; いる has いらっしゃる (in irregular map)
+  if (v.kana === 'ある') return false;
+  // Verbs with a single-mora stem and no irregular don't sound right with regular keigo.
+  // Check both maps for irregular coverage; if neither, require multi-mora stem.
+  if (SONKEIGO_IRREG[v.kana] || KENJOUGO_IRREG[v.kana]) return true;
+  const stem = masuStem(v);
+  return stem.length >= 2;
+}
+
+// ══════════════════════════════════════════════
+//  JLPT LEVEL GRAMMAR
+// ══════════════════════════════════════════════
+// JLPT-level grammar progression. Each sublevel inherits all prior patterns
+// and adds new ones. Ordering informed by the JLPT N5/N4 official grammar
+// inventories cross-referenced with Tae Kim's Guide to Japanese Grammar
+// (CC BY 3.0) for gap-filling.
+const LEVEL_GRAMMAR = {
+  'N5.1': {
+    patterns:['masu','masen'],
+    note:'Verb ～ます (polite present) · ～ません (negative) · Particles は (topic), を (object), に (to/at for existence), が (subject, with わかる/ある/いる)' },
+  'N5.2': {
+    patterns:['masu','masen','past','loc-ni','loc-de'],
+    note:'+ ～ました / ～ませんでした (past tense) · に for destination · で for activity location · Time words (まいにち、どようびに…)' },
+  'N5.3': {
+    patterns:['masu','masen','past','loc-ni','loc-de','adjectives','tai','te-kudasai'],
+    note:'+ い-adjective & な-adjective predicates (present/past/negative) · ～たい (want to do) · ～てください (polite request)' },
+  'N4.1': {
+    patterns:['masu','masen','past','loc-ni','loc-de','adjectives','tai','te-kudasai','te-connect','te-iru','naide'],
+    note:'+ て-form family: connecting verbs · ～ている (ongoing state) · ～ないでください (please don\'t)' },
+  'N4.2': {
+    patterns:['masu','masen','past','loc-ni','loc-de','adjectives','tai','te-kudasai','te-connect','te-iru','naide','potential','volitional'],
+    note:'+ Potential form (can do): る→られます, u→e+ます, する→できます · Volitional ～ましょう (let\'s…)' },
+  'N4.3': {
+    patterns:['masu','masen','past','loc-ni','loc-de','adjectives','tai','te-kudasai','te-connect','te-iru','naide','potential','volitional','give-receive','tara'],
+    note:'+ あげる/もらう/くれる (giving & receiving, with に recipient) · Conditional ～たら (if/when)' },
+  'N3.1': {
+    patterns:['masu','masen','past','loc-ni','loc-de','adjectives','tai','te-kudasai','te-connect','te-iru','naide','potential','volitional','give-receive','tara','nara','to-conditional','kamoshirenai','deshou','nagara','ta-koto-ga-aru','you-ni-naru'],
+    note:'+ ～なら (if/when) · ～と (whenever) · ～かもしれない (might) · ～でしょう (probably) · ～ながら (while) · ～たことがある (have experience) · ～ようになる (come to)' },
+  'N3.2': {
+    patterns:['masu','masen','past','loc-ni','loc-de','adjectives','tai','te-kudasai','te-connect','te-iru','naide','potential','volitional','give-receive','tara','nara','to-conditional','kamoshirenai','deshou','nagara','ta-koto-ga-aru','you-ni-naru','passive'],
+    note:'+ Passive form (受身): る→られる, う→a-row+れる, する→される · "X was Vd by Y"' },
+  'N3.3': {
+    patterns:['masu','masen','past','loc-ni','loc-de','adjectives','tai','te-kudasai','te-connect','te-iru','naide','potential','volitional','give-receive','tara','nara','to-conditional','kamoshirenai','deshou','nagara','ta-koto-ga-aru','you-ni-naru','passive','causative','causative-passive'],
+    note:'+ Causative (使役): る→させる, う→a-row+せる ("make/let do") · Causative-passive (使役受身): "be made to do"' },
+  'N3.4': {
+    patterns:['masu','masen','past','loc-ni','loc-de','adjectives','tai','te-kudasai','te-connect','te-iru','naide','potential','volitional','give-receive','tara','nara','to-conditional','kamoshirenai','deshou','nagara','ta-koto-ga-aru','you-ni-naru','passive','causative','causative-passive','sonkeigo','kenjougo'],
+    note:'+ Honorific (尊敬語): お～になる · Humble (謙譲語): お～する · Common irregular substitutions (いらっしゃる, いただく)' },
+};
+
+// Level ordering used by filters (lower index = earlier)
+const LEVEL_ORDER = ['N5.1','N5.2','N5.3','N4.1','N4.2','N4.3','N3.1','N3.2','N3.3','N3.4'];
+const LEVEL_RANK = Object.fromEntries(LEVEL_ORDER.map((l,i)=>[l,i]));
+
+// ══════════════════════════════════════════════
+//  VOCABULARY — JLPT-leveled, frequency-informed from BCCWJ corpus
+// ══════════════════════════════════════════════
+// Verb list. Each verb has:
+//   kana: dictionary form
+//   en: English base form
+//   type: 'u' (godan) / 'ru' (ichidan) / 'irr' (irregular)
+//   level: JLPT sublevel (N5.1, N5.2, N5.3, N4.1, N4.2, N4.3)
+//   trans: takes direct object with を
+//   wParticle: optional special particle (に, が, or non-standard を)
+//   langOnly: only pairs with language objects (e.g. はなす)
+//
+// Frequency informed by BCCWJ corpus; level assignment follows JLPT
+// N5/N4 canonical vocabulary lists. Most verbs here are in the top 1000
+// most-frequent verbs of contemporary written Japanese.
+// VERBS — each entry tagged with `freq` (JPDB v2.2 rank, where lower =
+// more common in real Japanese). Frequency is taken from the kanji form's
+// rank (the canonical written form), since most kana-only entries in JPDB
+// are far rarer than their kanji equivalents — but the app DISPLAYS them
+// in kana for beginner accessibility.
+//
+// Lower freq number = picked more often by the weighted random selector.
+// Verbs with rank ≤ 200 are very high frequency; 200-1000 common;
+// 1000-3000 moderate; 3000+ relatively uncommon.
+const VERBS = [
+  // N5.1 — copula + existence + most basic action verbs
+  {kana:'いく',        en:'go',               type:'u',   level:'N5.1', trans:false, freq:44},
+  {kana:'くる',        en:'come',             type:'irr', level:'N5.1', trans:false, freq:38},
+  {kana:'する',        en:'do',               type:'irr', level:'N5.1', trans:true,  freq:11},
+  {kana:'ある',        en:'exist',            type:'u',   level:'N5.1', trans:false, freq:14},
+  {kana:'いる',        en:'exist',            type:'ru',  level:'N5.1', trans:false, freq:18},
+  // N5.2 — core ます-form verbs: particles を / に (dest) / で / と
+  {kana:'かえる',      en:'go home',          type:'u',   level:'N5.2', trans:false, freq:177},
+  {kana:'きく',        en:'listen to',        type:'u',   level:'N5.2', trans:true,  freq:68},
+  {kana:'のむ',        en:'drink',            type:'u',   level:'N5.2', trans:true,  freq:305},
+  {kana:'はなす',      en:'speak',            type:'u',   level:'N5.2', trans:true,  langOnly:true, freq:163},
+  {kana:'よむ',        en:'read',             type:'u',   level:'N5.2', trans:true,  freq:312},
+  {kana:'おきる',      en:'wake up',          type:'ru',  level:'N5.2', trans:false, freq:317},
+  {kana:'たべる',      en:'eat',              type:'ru',  level:'N5.2', trans:true,  freq:184},
+  {kana:'ねる',        en:'sleep',            type:'ru',  level:'N5.2', trans:false, freq:535},
+  {kana:'みる',        en:'watch',            type:'ru',  level:'N5.2', trans:true,  freq:36},
+  {kana:'べんきょうする',en:'study',           type:'irr', level:'N5.2', trans:true,  freq:600},
+  {kana:'あう',        en:'meet',             type:'u',   level:'N5.2', trans:false, wParticle:'に', freq:172},
+  {kana:'かう',        en:'buy',              type:'u',   level:'N5.2', trans:true,  freq:309},
+  {kana:'かく',        en:'write',            type:'u',   level:'N5.2', trans:true,  freq:263},
+  {kana:'とる',        en:'take',             type:'u',   level:'N5.2', trans:true,  freq:431},
+  {kana:'まつ',        en:'wait',             type:'u',   level:'N5.2', trans:true,  freq:102},
+  {kana:'わかる',      en:'understand',       type:'u',   level:'N5.2', trans:false, wParticle:'が', freq:455},
+  // N5.2 — high-frequency additions from JPDB rank ≤300:
+  // Note: 思う and 言う grammatically take と (quotative) not を, so we mark
+  // them intransitive here to avoid wrong "Xを思います" generations. The app
+  // will produce "Xは思います" / "Xは言います" without an object.
+  {kana:'おもう',      en:'think',            type:'u',   level:'N5.2', trans:false, freq:20},
+  {kana:'いう',        en:'say',              type:'u',   level:'N5.2', trans:false, freq:27},
+  // 知る takes を or でも — keep transitive
+  {kana:'しる',        en:'know',             type:'u',   level:'N5.2', trans:true,  freq:63},
+  {kana:'もつ',        en:'have',             type:'u',   level:'N5.2', trans:true,  freq:109},
+  {kana:'つくる',      en:'make',             type:'u',   level:'N5.2', trans:true,  freq:157},
+  // N5.3 — adjectives, tai, tekudasai verbs
+  {kana:'およぐ',      en:'swim',             type:'u',   level:'N5.3', trans:false, freq:2091},
+  {kana:'のる',        en:'ride',             type:'u',   level:'N5.3', trans:false, wParticle:'に', freq:366},
+  {kana:'でかける',    en:'go out',           type:'ru',  level:'N5.3', trans:false, freq:1249},
+  {kana:'あびる',      en:'bathe',            type:'ru',  level:'N5.3', trans:true,  freq:2291},
+  {kana:'おしえる',    en:'teach',            type:'ru',  level:'N5.3', trans:true,  freq:226},
+  {kana:'かりる',      en:'borrow',           type:'ru',  level:'N5.3', trans:true,  freq:991},
+  // N5.3 — additions:
+  {kana:'あるく',      en:'walk',             type:'u',   level:'N5.3', trans:false, freq:208},
+  {kana:'はしる',      en:'run',              type:'u',   level:'N5.3', trans:false, freq:306},
+  // N4.1 — te-form family
+  {kana:'きる',        en:'wear',             type:'ru',  level:'N4.1', trans:true,  freq:671},
+  {kana:'つける',      en:'turn on',          type:'ru',  level:'N4.1', trans:true,  freq:316},
+  {kana:'あける',      en:'open',             type:'ru',  level:'N4.1', trans:true,  freq:583},
+  {kana:'しめる',      en:'close',            type:'ru',  level:'N4.1', trans:true,  freq:2148},
+  {kana:'けす',        en:'turn off',         type:'u',   level:'N4.1', trans:true,  freq:1075},
+  {kana:'はいる',      en:'enter',            type:'u',   level:'N4.1', trans:false, wParticle:'に', freq:113},
+  {kana:'でる',        en:'exit',             type:'ru',  level:'N4.1', trans:false, wParticle:'を', freq:74},
+  // N4.1 — additions:
+  {kana:'はじめる',    en:'start',            type:'ru',  level:'N4.1', trans:true,  freq:217},
+  {kana:'おわる',      en:'finish',           type:'u',   level:'N4.1', trans:false, freq:212},
+  // N4.2 — potential form, volitional
+  {kana:'あそぶ',      en:'hang out',         type:'u',   level:'N4.2', trans:false, freq:731},
+  {kana:'はたらく',    en:'work',             type:'u',   level:'N4.2', trans:false, freq:417},
+  {kana:'やすむ',      en:'rest',             type:'u',   level:'N4.2', trans:false, freq:884},
+  {kana:'つかう',      en:'use',              type:'u',   level:'N4.2', trans:true,  freq:132},
+  // N4.3 — giving/receiving, conditional, naru
+  {kana:'あげる',      en:'give',             type:'ru',  level:'N4.3', trans:true,  freq:191},
+  {kana:'もらう',      en:'receive',          type:'u',   level:'N4.3', trans:true,  freq:112},
+  {kana:'くれる',      en:'give me',          type:'ru',  level:'N4.3', trans:true,  freq:40},
+  {kana:'かす',        en:'lend',             type:'u',   level:'N4.3', trans:true,  freq:1243},
+  {kana:'りょこうする',en:'travel',           type:'irr', level:'N4.3', trans:false, freq:1500},
+  {kana:'そつぎょうする',en:'graduate',       type:'irr', level:'N4.3', trans:false, wParticle:'を', freq:1800},
+  // N3.1 — high-frequency intermediate verbs (added with N3 sublevel intro)
+  {kana:'かんがえる',  en:'think about',      type:'ru',  level:'N3.1', trans:true,  freq:84},
+  {kana:'わすれる',    en:'forget',           type:'ru',  level:'N3.1', trans:true,  freq:237},
+  {kana:'おぼえる',    en:'memorize',         type:'ru',  level:'N3.1', trans:true,  freq:274},
+  {kana:'うける',      en:'take',             type:'ru',  level:'N3.1', trans:true,  freq:222},
+  {kana:'えらぶ',      en:'choose',           type:'u',   level:'N3.1', trans:true,  freq:335},
+  {kana:'つづける',    en:'continue',         type:'ru',  level:'N3.1', trans:true,  freq:196},
+  // N3.2 — verbs that pair well with passive constructions
+  {kana:'みつける',    en:'find',             type:'ru',  level:'N3.2', trans:true,  freq:342},
+  {kana:'さがす',      en:'search for',       type:'u',   level:'N3.2', trans:true,  freq:560},
+  {kana:'やめる',      en:'quit',             type:'ru',  level:'N3.2', trans:true,  freq:230},
+  // N3.3 — verbs that pair well with causative
+  {kana:'こまる',      en:'be troubled',      type:'u',   level:'N3.3', trans:false, freq:299},
+  {kana:'つかれる',    en:'get tired',        type:'ru',  level:'N3.3', trans:false, freq:778},
+  {kana:'なれる',      en:'get used to',      type:'ru',  level:'N3.3', trans:false, wParticle:'に', freq:786},
+  // N3.4 — verbs commonly seen with keigo register (formal contexts)
+  {kana:'せつめいする',en:'explain',          type:'irr', level:'N3.4', trans:true,  freq:800},
+  {kana:'しょうかいする',en:'introduce',      type:'irr', level:'N3.4', trans:true,  freq:1000},
+  {kana:'やくそくする',en:'promise',          type:'irr', level:'N3.4', trans:true,  freq:1500},
+];
+
+// TOPICS include an `animate` flag used by existence verbs ある/いる:
+//   - いる requires animate subjects (people/animals)
+//   - ある requires inanimate subjects (things, places, abstracts)
+// For all other verbs the flag is ignored.
+const TOPICS = [
+  {en:'I',             kana:'わたし',    animate:true,  freq:32},
+  {en:'you',           kana:'あなた',    animate:true,  freq:121},
+  {en:'he',            kana:'かれ',      animate:true,  freq:137},
+  {en:'she',           kana:'かのじょ',  animate:true,  freq:450},
+  {en:'friend',        kana:'ともだち',  animate:true,  freq:654},
+  {en:'teacher',       kana:'せんせい',  animate:true,  freq:485},
+  {en:'student',       kana:'がくせい',  animate:true,  freq:1964},
+  {en:'Mary',          kana:'メアリー',  animate:true,  freq:8000},
+  {en:'Ken',           kana:'ケン',      animate:true,  freq:8000},
+  {en:'older brother', kana:'あに',      animate:true,  freq:1391},
+  {en:'older sister',  kana:'あね',      animate:true,  freq:1486},
+];
+
+// Inanimate subjects used ONLY for ある ("exist" for things). These aren't
+// general-purpose topics — they only appear when the verb requires them.
+const INANIMATE_SUBJECTS = [
+  {en:'a book',        kana:'ほん',      animate:false, freq:357},
+  {en:'a pen',         kana:'ペン',      animate:false, freq:1500},
+  {en:'a dictionary',  kana:'じしょ',    animate:false, freq:3500},
+  {en:'a car',         kana:'くるま',    animate:false, freq:240},
+  {en:'a phone',       kana:'でんわ',    animate:false, freq:600},
+  {en:'a TV',          kana:'テレビ',    animate:false, freq:850},
+  {en:'a computer',    kana:'パソコン',  animate:false, freq:2300},
+  {en:'a chair',       kana:'いす',      animate:false, freq:3500},
+  {en:'a desk',        kana:'つくえ',    animate:false, freq:5500},
+  {en:'a bag',         kana:'かばん',    animate:false, freq:8500},
+  // N3 additions: abstract nouns common in N3 contexts
+  {en:'a problem',     kana:'もんだい',  animate:false, freq:246},
+  {en:'a meeting',     kana:'かいぎ',    animate:false, freq:2325},
+  {en:'an exam',       kana:'しけん',    animate:false, freq:3270},
+  {en:'homework',      kana:'しゅくだい',animate:false, freq:5567},
+  {en:'an answer',     kana:'こたえ',    animate:false, freq:788},
+];
+
+// OBJ: direct-object lists keyed by verb English. Only verbs that genuinely
+// take a direct object (with を) at Genki levels have entries here.
+// Verbs with no entry get NO object card — the sentence just omits it
+// (which is fully grammatical in Japanese).
+const OBJ = {
+  'eat':           [{en:'sushi',kana:'すし'},{en:'ramen',kana:'ラーメン'},{en:'rice',kana:'ごはん'},{en:'breakfast',kana:'あさごはん'},{en:'lunch',kana:'ひるごはん'},{en:'dinner',kana:'ばんごはん'},{en:'bread',kana:'パン'},{en:'hamburger',kana:'ハンバーガー'}],
+  'drink':         [{en:'coffee',kana:'コーヒー'},{en:'water',kana:'みず'},{en:'tea',kana:'おちゃ'},{en:'sake',kana:'おさけ'}],
+  'watch':         [{en:'movie',kana:'えいが'},{en:'TV',kana:'テレビ'},{en:'video',kana:'ビデオ'}],
+  'read':          [{en:'book',kana:'ほん'},{en:'magazine',kana:'ざっし'},{en:'newspaper',kana:'しんぶん'}],
+  'write':         [{en:'letter',kana:'てがみ'},{en:'report',kana:'レポート'}],
+  'speak':         [{en:'Japanese',kana:'にほんご'},{en:'English',kana:'えいご'}], // languages only
+  'study':         [{en:'Japanese',kana:'にほんご'},{en:'math',kana:'すうがく'},{en:'English',kana:'えいご'}],
+  'buy':           [{en:'souvenir',kana:'おみやげ'},{en:'book',kana:'ほん'},{en:'ticket',kana:'きっぷ'}],
+  'listen to':     [{en:'music',kana:'おんがく'}],
+  'do':            [{en:'homework',kana:'しゅくだい'},{en:'sports',kana:'スポーツ'}],
+  'use':           [{en:'dictionary',kana:'じしょ'},{en:'phone',kana:'けいたい'}],
+  'teach':         [{en:'Japanese',kana:'にほんご'},{en:'English',kana:'えいご'}],
+  'take':          [{en:'photo',kana:'しゃしん'}],
+  'give':          [{en:'book',kana:'ほん'},{en:'souvenir',kana:'おみやげ'},{en:'postcard',kana:'はがき'}],
+  'give me':       [{en:'book',kana:'ほん'},{en:'present',kana:'プレゼント'},{en:'postcard',kana:'はがき'}],
+  'receive':       [{en:'book',kana:'ほん'},{en:'present',kana:'プレゼント'}],
+  'lend':          [{en:'dictionary',kana:'じしょ'},{en:'pen',kana:'ペン'}],
+  'borrow':        [{en:'dictionary',kana:'じしょ'},{en:'book',kana:'ほん'}],
+  'open':          [{en:'window',kana:'まど'},{en:'door',kana:'ドア'}],
+  'close':         [{en:'window',kana:'まど'},{en:'door',kana:'ドア'}],
+  'turn on':       [{en:'TV',kana:'テレビ'},{en:'light',kana:'でんき'}],
+  'turn off':      [{en:'TV',kana:'テレビ'},{en:'light',kana:'でんき'}],
+  'wait':          [{en:'friend',kana:'ともだち'},{en:'bus',kana:'バス'}],
+  'wear':          [{en:'shirt',kana:'シャツ'},{en:'T-shirt',kana:'Tシャツ'}],
+  'bathe':         [{en:'shower',kana:'シャワー'}],
+  // High-frequency additions:
+  'know':          [{en:'name',kana:'なまえ'},{en:'answer',kana:'こたえ'}],
+  'have':          [{en:'book',kana:'ほん'},{en:'umbrella',kana:'かさ'},{en:'pen',kana:'ペン'},{en:'phone',kana:'でんわ'}],
+  'make':          [{en:'food',kana:'たべもの'},{en:'cake',kana:'ケーキ'},{en:'breakfast',kana:'あさごはん'},{en:'dinner',kana:'ばんごはん'}],
+  'start':         [{en:'study',kana:'べんきょう'},{en:'work',kana:'しごと'}],
+  // N3 verb objects:
+  'think about':   [{en:'problem',kana:'もんだい'},{en:'plan',kana:'けいかく'},{en:'work',kana:'しごと'}],
+  'forget':        [{en:'name',kana:'なまえ'},{en:'promise',kana:'やくそく'},{en:'homework',kana:'しゅくだい'}],
+  'memorize':      [{en:'word',kana:'たんご'},{en:'name',kana:'なまえ'},{en:'kanji',kana:'かんじ'}],
+  'choose':        [{en:'answer',kana:'こたえ'},{en:'food',kana:'たべもの'},{en:'gift',kana:'プレゼント'}],
+  'continue':      [{en:'study',kana:'べんきょう'},{en:'work',kana:'しごと'},{en:'practice',kana:'れんしゅう'}],
+  'find':          [{en:'answer',kana:'こたえ'},{en:'key',kana:'かぎ'},{en:'phone',kana:'でんわ'}],
+  'search for':    [{en:'key',kana:'かぎ'},{en:'phone',kana:'でんわ'},{en:'job',kana:'しごと'}],
+  'quit':          [{en:'job',kana:'しごと'},{en:'study',kana:'べんきょう'}],
+  'explain':       [{en:'problem',kana:'もんだい'},{en:'plan',kana:'けいかく'},{en:'meaning',kana:'いみ'}],
+  'introduce':     [{en:'friend',kana:'ともだち'},{en:'family',kana:'かぞく'}],
+  'promise':       [{en:'meeting',kana:'かいぎ'},{en:'plan',kana:'けいかく'}],
+};
+
+const LOCS = [
+  {en:'at school',       kana:'がっこう',  freq:616},
+  {en:'at home',         kana:'うち',      freq:180},
+  {en:'at the library',  kana:'としょかん',freq:4217},
+  {en:'at a restaurant', kana:'レストラン',freq:6054},
+  {en:'at the park',     kana:'こうえん',  freq:2414},
+  {en:'at a café',       kana:'カフェ',    freq:8327},
+  {en:'at university',   kana:'だいがく',  freq:1835},
+  {en:'at the supermarket',kana:'スーパー',freq:5569},
+  // High-frequency additions:
+  {en:'at the office',   kana:'かいしゃ',  freq:1667},
+  {en:'at the store',    kana:'みせ',      freq:676},
+  {en:'at the station',  kana:'えき',      freq:2115},
+  // N3 additions:
+  {en:'at the bank',     kana:'ぎんこう',  freq:6077},
+  {en:'at the airport',  kana:'くうこう',  freq:10308},
+  {en:'in the town',     kana:'まち',      freq:793},
+];
+
+const DESTS = [
+  {en:'to school',     kana:'がっこう',  freq:616},
+  {en:'to university', kana:'だいがく',  freq:1835},
+  {en:'to Japan',      kana:'にほん',    freq:803},
+  {en:'to the park',   kana:'こうえん',  freq:2414},
+  {en:'home',          kana:'うち',      freq:180},
+  {en:'to the hospital',kana:'びょういん',freq:1582},
+  {en:'to the station',kana:'えき',      freq:2115},
+  // Additions:
+  {en:'to the store',  kana:'みせ',      freq:676},
+  {en:'to the beach',  kana:'うみ',      freq:722},
+];
+
+// Time words with tense compatibility tags:
+//   future: only works with non-past (ashita, konban, tomorrow-ish)
+//   past: only works with past ("yesterday")
+//   any: works with any tense (recurring, today, time-of-day)
+const TIMES = [
+  {en:'every day',     kana:'まいにち',    tense:'any',    freq:436},
+  {en:'every morning', kana:'まいあさ',    tense:'any',    freq:6456},
+  {en:'every night',   kana:'まいばん',    tense:'any',    freq:9000},
+  {en:'today',         kana:'きょう',      tense:'any',    freq:122},
+  {en:'tomorrow',      kana:'あした',      tense:'future', freq:547},
+  {en:'tonight',       kana:'こんばん',    tense:'future', freq:6208},
+  {en:'yesterday',     kana:'きのう',      tense:'past',   freq:556},
+  {en:'on Saturday',   kana:'どようびに',  tense:'any',    freq:8000},
+  {en:'on Sunday',     kana:'にちようびに',tense:'any',    freq:8000},
+  {en:'on weekends',   kana:'しゅうまつに',tense:'any',    freq:9000},
+  {en:'at 3:00',       kana:'さんじに',    tense:'any',    freq:6000},
+  {en:'at 7:00',       kana:'しちじに',    tense:'any',    freq:6000},
+];
+const TIMES_NON_PAST = TIMES.filter(t => t.tense !== 'past');
+const TIMES_PAST     = TIMES.filter(t => t.tense !== 'future');
+
+const ADJ_I = [
+  {en:'interesting',kana:'おもしろい',neg:'おもしろくない', freq:660},
+  {en:'difficult',  kana:'むずかしい',neg:'むずかしくない', freq:680},
+  {en:'easy',       kana:'やさしい',  neg:'やさしくない',   freq:1500},
+  {en:'fun',        kana:'たのしい',  neg:'たのしくない',   freq:285},
+  {en:'new',        kana:'あたらしい',neg:'あたらしくない', freq:373},
+  {en:'big',        kana:'おおきい',  neg:'おおきくない',   freq:218},
+  {en:'small',      kana:'ちいさい',  neg:'ちいさくない',   freq:334},
+  {en:'hot',        kana:'あつい',    neg:'あつくない',     freq:2154},
+  {en:'cold',       kana:'さむい',    neg:'さむくない',     freq:1174},
+  {en:'busy',       kana:'いそがしい',neg:'いそがしくない', freq:944},
+  {en:'scary',      kana:'こわい',    neg:'こわくない',     freq:1100},
+  // High-frequency additions:
+  {en:'good',       kana:'いい',      neg:'よくない',       freq:139},
+  {en:'bad',        kana:'わるい',    neg:'わるくない',     freq:150},
+  {en:'fast',       kana:'はやい',    neg:'はやくない',     freq:160},
+  {en:'strong',     kana:'つよい',    neg:'つよくない',     freq:169},
+  {en:'old',        kana:'ふるい',    neg:'ふるくない',     freq:1192},
+  {en:'high',       kana:'たかい',    neg:'たかくない',     freq:265},
+  // N3 additions:
+  {en:'near',       kana:'ちかい',    neg:'ちかくない',     freq:382},
+  {en:'far',        kana:'とおい',    neg:'とおくない',     freq:871},
+  {en:'dark',       kana:'くらい',    neg:'くらくない',     freq:189},
+  {en:'bright',     kana:'あかるい',  neg:'あかるくない',   freq:935},
+  {en:'beautiful',  kana:'うつくしい',neg:'うつくしくない', freq:674},
+];
+const ADJ_NA = [
+  {en:'quiet',   kana:'しずか',   neg:'しずかじゃない',   freq:650},
+  {en:'lively',  kana:'にぎやか', neg:'にぎやかじゃない', freq:5158},
+  {en:'healthy', kana:'げんき',   neg:'げんきじゃない',   freq:400},
+  {en:'not busy',kana:'ひま',     neg:'ひまじゃない',     freq:5000},
+  {en:'clean',   kana:'きれい',   neg:'きれいじゃない',   freq:1407},
+  // Additions:
+  {en:'important',kana:'たいせつ',neg:'たいせつじゃない', freq:435},
+  // N3 additions:
+  {en:'necessary',kana:'ひつよう',neg:'ひつようじゃない', freq:195},
+  {en:'simple',  kana:'かんたん', neg:'かんたんじゃない', freq:353},
+  {en:'free',    kana:'じゆう',   neg:'じゆうじゃない',   freq:439},
+  {en:'famous',  kana:'ゆうめい', neg:'ゆうめいじゃない', freq:1227},
+  {en:'kind',    kana:'しんせつ', neg:'しんせつじゃない', freq:4064},
+];
+const ADJ_SUBJECTS = [
+  {en:'this class',     kana:'このじゅぎょう', freq:2000},
+  {en:'this restaurant',kana:'このレストラン', freq:6000},
+  {en:'Japanese',       kana:'にほんご',       freq:803},
+  {en:'the test',       kana:'テスト',         freq:1100},
+  {en:'Tokyo',          kana:'とうきょう',     freq:600},
+  {en:'the movie',      kana:'えいが',         freq:2128},
+  {en:'this book',      kana:'このほん',       freq:357},
+  {en:'the food',       kana:'たべもの',       freq:2521},
+];
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let selectedLevel = 'N5.1';
+let cardDisplay = 'en';
+let showTranslation = true;   // default ON — toggle via buttons
+let stats = {correct:0,wrong:0,streak:0,total:0};
+let sessionQ=[], sessionIdx=0;
+const SESSION_SIZE = 15;
+let currentQ=null, answered=false, hintShown=false;
+
+// ══════════════════════════════════════════════
+//  UI
+// ══════════════════════════════════════════════
+function buildLessonGrid() {
+  const g = document.getElementById('lesson-grid');
+  g.innerHTML = '';
+  for (const level of LEVEL_ORDER) {
+    const b = document.createElement('button');
+    const isN4 = level.startsWith('N4');
+    const isN3 = level.startsWith('N3');
+    b.className = 'lesson-btn'
+      + (isN4 ? ' book2' : '')
+      + (isN3 ? ' book3' : '')
+      + (level === selectedLevel ? ' selected' : '');
+    b.textContent = level;
+    b.onclick = ()=>{ selectedLevel=level; buildLessonGrid(); updateGrammarInfo(); };
+    g.appendChild(b);
+  }
+}
+
+function updateGrammarInfo() {
+  const info = LEVEL_GRAMMAR[selectedLevel] || LEVEL_GRAMMAR['N4.3'];
+  const idx = LEVEL_ORDER.indexOf(selectedLevel);
+  const prev = idx > 0 ? LEVEL_GRAMMAR[LEVEL_ORDER[idx-1]].patterns : [];
+  const curr = info.patterns;
+  const newOnes = curr.filter(p => !prev.includes(p));
+  const pN = {
+    'masu':'～ます/ません','past':'～ました past','loc-ni':'に (destination)',
+    'loc-de':'で (location)','adjectives':'adjectives','te-kudasai':'～てください',
+    'te-connect':'～て (connect)','te-iru':'～ている','naide':'～ないでください',
+    'give-receive':'あげる/もらう','tai':'～たい','potential':'potential form',
+    'volitional':'～ましょう volitional','tara':'～たら conditional',
+    // N3.1
+    'nara':'～なら conditional','to-conditional':'～と (whenever)',
+    'kamoshirenai':'～かもしれない','deshou':'～でしょう (probably)',
+    'nagara':'～ながら (while)','ta-koto-ga-aru':'～たことがある',
+    'you-ni-naru':'～ようになる',
+    // N3.2
+    'passive':'passive 受身',
+    // N3.3
+    'causative':'causative 使役','causative-passive':'caus-passive 使役受身',
+    // N3.4
+    'sonkeigo':'sonkeigo 尊敬語','kenjougo':'kenjougo 謙譲語',
+  };
+  let html = `<strong>Grammar up to ${selectedLevel}:</strong><br>`;
+  html += curr.map(p=>`<span class="grammar-tag${newOnes.includes(p)?' new':''}">${pN[p]||p}${newOnes.includes(p)?' ★':''}</span>`).join('');
+  html += `<br><em style="font-size:11px">${info.note}</em>`;
+  document.getElementById('grammar-unlocked').innerHTML = html;
+  updateOrderGuide();
+}
+
+// Build the canonical word-order guide for the current lesson. The template
+// and example sentence are built from the SAME token list so they always
+// mirror each other exactly — every particle shown in the template appears
+// in the example and vice versa.
+function updateOrderGuide() {
+  const pats = patternsFor(selectedLevel);
+  const has = p => pats.includes(p);
+
+  // Decide which slots the example will include. Order matches canonical TTPOV
+  // (Topic → Time → Place → Recipient → Object → Verb).
+  // Each entry: { slot, label, particle, exKana, exEn }
+  //  - label/particle drive the template row
+  //  - exKana/exEn drive the concrete example row
+  //  - particle undefined → no particle rendered for either
+  const tokens = [];
+
+  tokens.push({slot:'topic', label:'Topic', particle:'は',
+    exKana:'わたし', exEn:'I'});
+
+  // Time is always available from L3 onward
+  tokens.push({slot:'time', label:'Time', particle:null,
+    exKana:'まいにち', exEn:'every day'});
+
+  if (has('loc-de')) {
+    tokens.push({slot:'place', label:'Place', particle:'で',
+      exKana:'としょかん', exEn:'at the library'});
+  }
+
+  if (has('give-receive')) {
+    tokens.push({slot:'target', label:'Recipient', particle:'に',
+      exKana:'ともだち', exEn:'to my friend'});
+  }
+
+  // Object: choose something sensible for the lesson
+  tokens.push({slot:'object', label:'Object', particle:'を',
+    exKana:'ほん', exEn:'a book'});
+
+  // Verb: choose based on what grammar is unlocked
+  let verbKana = 'よみます';
+  let verbEn = 'read';
+  if (has('give-receive')) { verbKana = 'あげます'; verbEn = 'give'; }
+  else if (has('te-iru'))  { verbKana = 'よんでいます'; verbEn = 'am reading'; }
+  else if (has('past'))    { verbKana = 'よみました'; verbEn = 'read (past)'; }
+  tokens.push({slot:'verb', label:'Verb', particle:null,
+    exKana:verbKana, exEn:verbEn});
+
+  // Build template HTML
+  let tmplHtml = '';
+  for (const t of tokens) {
+    tmplHtml += `<span class="order-slot ${t.slot}">${t.label}</span>`;
+    if (t.particle) tmplHtml += `<span class="order-particle">${t.particle}</span>`;
+    tmplHtml += ' ';
+  }
+
+  // Build example HTML with the exact same structure
+  let exHtml = '';
+  let exEnParts = [];
+  for (const t of tokens) {
+    exHtml += `<span class="order-slot ${t.slot}">${t.exKana}</span>`;
+    if (t.particle) exHtml += `<span class="order-particle">${t.particle}</span>`;
+    exHtml += ' ';
+    exEnParts.push(t.exEn);
+  }
+
+  document.getElementById('order-template').innerHTML = tmplHtml;
+  document.getElementById('order-example').innerHTML =
+    `<strong>Example:</strong> ${exHtml}<br>"${buildExEn(exEnParts, tokens)}"`;
+}
+
+// Assemble a natural English gloss that describes the example sentence.
+// Maps slot → English fragment, then composes them in SVO order.
+function buildExEn(parts, tokens) {
+  const m = {};
+  tokens.forEach((t, i) => m[t.slot] = parts[i]);
+  // Build: "[Topic] [Verb] [Object] [Recipient] [Place] [Time]."
+  const pieces = [];
+  if (m.topic) pieces.push(m.topic);
+  if (m.verb)  pieces.push(m.verb);
+  if (m.object) pieces.push(m.object);
+  if (m.target) pieces.push(m.target);
+  if (m.place) pieces.push(m.place);
+  if (m.time)  pieces.push(m.time);
+  const s = pieces.join(' ').trim();
+  return s.charAt(0).toUpperCase() + s.slice(1) + '.';
+}
+
+function setDisplay(mode) {
+  cardDisplay = mode;
+  document.getElementById('btn-en').className   = mode==='en'   ?'active':'';
+  document.getElementById('btn-kana').className = mode==='kana' ?'active':'';
+  document.querySelectorAll('.wc-jp').forEach(el=>el.classList.toggle('hide',mode==='en'));
+}
+
+function setTranslation(on) {
+  showTranslation = on;
+  document.getElementById('btn-xl-on').className  = on  ? 'active' : '';
+  document.getElementById('btn-xl-off').className = !on ? 'active' : '';
+  // If the feedback panel is already showing, toggle the translation box
+  const box = document.getElementById('translation-box');
+  if (box) box.style.display = on ? '' : 'none';
+}
+
+// ══════════════════════════════════════════════
+//  TRANSLATION BUILDER
+//
+//  Given the components used to build a Japanese sentence, produces two
+//  English renderings:
+//    literal  — follows Japanese word order with particle hints in brackets.
+//               Style: "[As for Mary], [on Sunday], [music-obj], [listen-neg]"
+//    natural  — proper English SVO order with correct tense/aspect.
+//               Style: "Mary doesn't listen to music on Sunday."
+//
+//  Every genQ case calls this with a `spec` object that describes the
+//  sentence's components. Only fields that apply to the pattern are passed.
+// ══════════════════════════════════════════════
+
+// Pronoun handling: Japanese pronouns translate to subject-form English.
+// The verb conjugation table handles 3rd-person -s later.
+const PRONOUN_MAP = {
+  'I':'I','you':'you','he':'he','she':'she',
+  'friend':'my friend','teacher':'the teacher','student':'the student',
+  'Mary':'Mary','Ken':'Ken','older brother':'my older brother','older sister':'my older sister',
+};
+
+// Object-case pronouns for use after prepositions (e.g., "by X", "to X").
+// English requires "by me" not "by I", "by him" not "by he", etc.
+const PRONOUN_OBJ_MAP = {
+  'I':'me','you':'you','he':'him','she':'her',
+  'friend':'my friend','teacher':'the teacher','student':'the student',
+  'Mary':'Mary','Ken':'Ken','older brother':'my older brother','older sister':'my older sister',
+};
+
+// Does the English subject need 3rd-person singular -s on present-tense verbs?
+const is3ps = subjectEn => {
+  const s = (subjectEn || '').toLowerCase();
+  if (s === 'i' || s === 'you') return false;
+  // "my friend", "the teacher", "he", "she", "Mary", etc. are all 3rd singular
+  return true;
+};
+
+// Convert a Japanese-style verb+English base into a natural English verb phrase.
+// Input:
+//   base — bare English verb like "eat", "listen to", "go", "go home"
+//   opts — { past, neg, teIru, tai, potential, teConnect, subject }
+function conjugateEnVerb(base, opts = {}) {
+  const { past, neg, teIru, tai, potential, subject } = opts;
+  // Strip any parenthetical disambiguation from the base verb. We conjugate
+  // the core (e.g. "take") and, for phrases like "take (a photo)", re-attach
+  // the parenthetical content as a proper object ("a photo") at the end.
+  // This prevents ungrammatical output like "take (a photo)ing".
+  let parenSuffix = '';    // e.g. ' a photo' to append after the conjugated verb
+  const parenMatch = base.match(/\s*\(([^)]+)\)\s*$/);
+  if (parenMatch) {
+    parenSuffix = ' ' + parenMatch[1];
+    base = base.slice(0, parenMatch.index).trim();
+  }
+  // Irregular past-tense map for common verbs in our vocab. Keys are the
+  // BARE verb form (parentheticals stripped above), so "take (a photo)"
+  // looks up under "take".
+  const pastMap = {
+    'eat':'ate','drink':'drank','read':'read','write':'wrote','speak':'spoke',
+    'listen to':'listened to','watch':'watched','study':'studied','buy':'bought',
+    'go':'went','come':'came','go home':'went home','go back':'went back','sleep':'slept','wake up':'woke up',
+    'swim':'swam','do':'did','meet':'met','understand':'understood',
+    'give':'gave','receive':'received','lend':'lent','borrow':'borrowed',
+    'open':'opened','close':'closed','turn on':'turned on','turn off':'turned off',
+    'wait':'waited','wear':'wore','take':'took',
+    'teach':'taught','use':'used','hang out':'hung out',
+    'work':'worked','rest':'rested','travel':'traveled','graduate':'graduated',
+    'enter':'entered','exit':'left','ride':'rode','go out':'went out',
+    'exist':'was',
+    // Additions for hi-freq verbs:
+    'think':'thought','say':'said','know':'knew','have':'had','make':'made',
+    'walk':'walked','run':'ran','start':'started','finish':'finished',
+    // N3 verbs
+    'think about':'thought about','forget':'forgot','memorize':'memorized',
+    'choose':'chose','continue':'continued','find':'found','search for':'searched for',
+    'quit':'quit','be troubled':'was troubled','get tired':'got tired',
+    'get used to':'got used to','explain':'explained','introduce':'introduced',
+    'promise':'promised','give me':'gave me',
+  };
+  const ingMap = {
+    'eat':'eating','drink':'drinking','read':'reading','write':'writing','speak':'speaking',
+    'listen to':'listening to','watch':'watching','study':'studying','buy':'buying',
+    'go':'going','come':'coming','go home':'going home','go back':'going back','sleep':'sleeping','wake up':'waking up',
+    'swim':'swimming','do':'doing','meet':'meeting','give':'giving','receive':'receiving',
+    'lend':'lending','borrow':'borrowing','open':'opening','close':'closing',
+    'turn on':'turning on','turn off':'turning off','wait':'waiting','teach':'teaching',
+    'use':'using','hang out':'hanging out','work':'working','rest':'resting',
+    'travel':'travelling','take':'taking',
+    'wear':'wearing','ride':'riding','go out':'going out','graduate':'graduating',
+    'enter':'entering','exit':'leaving',
+    // N3 verbs:
+    'think':'thinking','say':'saying','know':'knowing','have':'having','make':'making',
+    'walk':'walking','run':'running','start':'starting','finish':'finishing',
+    'think about':'thinking about','forget':'forgetting','memorize':'memorizing',
+    'choose':'choosing','continue':'continuing','find':'finding','search for':'searching for',
+    'quit':'quitting','be troubled':'being troubled','get tired':'getting tired',
+    'get used to':'getting used to','explain':'explaining','introduce':'introducing',
+    'promise':'promising',
+  };
+  // Inner function does the actual conjugation on the stripped `base`.
+  // We attach `parenSuffix` (if any) to the final result.
+  const conjugate = () => {
+    // Potential: "can X"
+    if (potential) {
+      return (neg ? "can't " : 'can ') + base;
+    }
+    // Tai: "want(s) to X" / "don't want to X" / "doesn't want to X"
+    if (tai) {
+      if (neg) {
+        const aux = is3ps(subject) ? "doesn't" : "don't";
+        return `${aux} want to ${base}`;
+      }
+      const wt = is3ps(subject) ? 'wants' : 'want';
+      return `${wt} to ${base}`;
+    }
+    // Te-iru: "is Xing" / "isn't Xing"
+    if (teIru) {
+      let ing = ingMap[base];
+      if (!ing) {
+        // Smart -ing fallback: bathe → bathing (drop trailing 'e')
+        if (base.endsWith('e') && !base.endsWith('ee')) ing = base.slice(0,-1) + 'ing';
+        else ing = base + 'ing';
+      }
+      const aux = is3ps(subject) ? 'is' : (subject && subject.toLowerCase() === 'i' ? 'am' : 'are');
+      return aux + (neg ? ' not ' : ' ') + ing;
+    }
+    // Past
+    if (past) {
+      if (neg) return "didn't " + base;
+      if (pastMap[base]) return pastMap[base];
+      // Smart -ed application — works on the HEAD word for multi-word verbs:
+      //   "search for" → split → "search" + "for" → past head + " for" → "searched for"
+      const parts = base.split(' ');
+      const head = parts[0];
+      const rest = parts.slice(1).join(' ');
+      let pastHead;
+      if (head.endsWith('e')) pastHead = head + 'd';
+      else if (/[^aeiou]y$/.test(head)) pastHead = head.slice(0,-1) + 'ied';
+      else pastHead = head + 'ed';
+      return rest ? pastHead + ' ' + rest : pastHead;
+    }
+    // Present
+    if (neg) {
+      const aux = is3ps(subject) ? "doesn't" : "don't";
+      return aux + ' ' + base;
+    }
+    // Plain present
+    if (is3ps(subject)) {
+      // Multi-word verbs (e.g. "listen to", "go home"): apply -s to head word only
+      // Must test this BEFORE the whole-string regex, since phrases ending in
+      // "o" ("listen to") or "y" ("stay" — hypothetically) would otherwise
+      // be miscategorised and produce "listen toes" etc.
+      const words = base.split(' ');
+      if (words.length > 1) {
+        const head = words[0];
+        let conj;
+        if (/s$|x$|ch$|sh$|o$/.test(head)) conj = head + 'es';
+        else if (/[^aeiou]y$/.test(head)) conj = head.slice(0,-1) + 'ies';
+        else conj = head + 's';
+        return conj + ' ' + words.slice(1).join(' ');
+      }
+      // Single-word: standard -s / -es / -ies rules
+      if (/s$|x$|ch$|sh$|o$/.test(base)) return base + 'es';
+      if (/[^aeiou]y$/.test(base)) return base.slice(0,-1) + 'ies';
+      return base + 's';
+    }
+    return base;
+  };
+  return conjugate() + parenSuffix;
+}
+
+// Format time phrase for English. Genki-style time words and their English.
+const TIME_EN = {
+  'every day':'every day','on Sunday':'on Sunday','on Saturday':'on Saturday',
+  'this morning':'this morning','tonight':'tonight','tomorrow':'tomorrow',
+  'yesterday':'yesterday','now':'now','on weekends':'on weekends',
+  'at 7':'at 7','at 9':'at 9','at 11':'at 11',
+};
+
+// Main translation builder. `spec` describes a sentence; returns {literal, natural}.
+// Convert an English verb base to its past participle for use after
+// "have/had" or "be" (passive). Handles known irregulars + multi-word verbs.
+function pastParticiple(base) {
+  const map = {
+    'eat':'eaten','drink':'drunk','read':'read','write':'written','speak':'spoken',
+    'go':'gone','come':'come','sleep':'slept','wake up':'woken up','swim':'swum',
+    'do':'done','meet':'met','give':'given','receive':'received','take':'taken',
+    'see':'seen','watch':'watched','listen to':'listened to','study':'studied',
+    'buy':'bought','wait':'waited','understand':'understood','open':'opened','close':'closed',
+    'wear':'worn','ride':'ridden','use':'used','lend':'lent','borrow':'borrowed',
+    'make':'made','start':'started','finish':'finished','have':'had','know':'known',
+    'say':'said','think':'thought','bathe':'bathed','teach':'taught',
+    'turn on':'turned on','turn off':'turned off','walk':'walked','run':'run',
+    'hang out':'hung out','rest':'rested','work':'worked','enter':'entered','exit':'exited',
+    'travel':'travelled','graduate':'graduated','go home':'gone home','go back':'gone back',
+    'give me':'given to me',
+    // N3 verbs
+    'think about':'thought about','forget':'forgotten','memorize':'memorized',
+    'choose':'chosen','continue':'continued','find':'found','search for':'searched for',
+    'quit':'quit','be troubled':'been troubled','get tired':'gotten tired',
+    'get used to':'gotten used to','explain':'explained','introduce':'introduced',
+    'promise':'promised',
+  };
+  if (map[base]) return map[base];
+  // Multi-word fallback: apply -ed to head only
+  const parts = base.split(' ');
+  const head = parts[0];
+  const rest = parts.slice(1).join(' ');
+  let pastHead;
+  if (head.endsWith('e') && !head.endsWith('ee')) pastHead = head + 'd';
+  else if (/[^aeiou]y$/.test(head)) pastHead = head.slice(0,-1) + 'ied';
+  else pastHead = head + 'ed';
+  return rest ? pastHead + ' ' + rest : pastHead;
+}
+
+function buildTranslation(spec) {
+  const {
+    topic, topicEn,           // subject noun
+    time, timeEn,             // time adverbial (optional)
+    place, placeEn,           // activity location で (optional)
+    dest, destEn,             // destination に (optional)
+    target, targetEn,         // recipient に (optional)
+    obj, objEn,               // direct object を (optional)
+    objParticle,              // 'を' | 'が' (for potential)
+    verbBase,                 // English base form of the verb
+    past, neg, teIru, tai, potential, teConnect,
+    verbBase2, verbEn2, neg2, // for te-connect
+    obj2, obj2En,             // second object for te-connect
+    adjKind, adjEn,           // 'i' | 'na' — for adjective sentences
+    requestForm,              // for てください
+    naideForm,                // for ないで
+    volitional,               // for ましょう
+    taraForm,                 // for ～たら conditional
+    exists,                   // for いる/ある
+    // N3.1 flags
+    naraForm,                 // ～なら: "if X (assuming)"
+    toConditional,            // ～と:  "whenever X"
+    kamoshirenai,             // ～かもしれない: "might V"
+    deshou,                   // ～でしょう: "probably V"
+    nagaraForm,               // ～ながら: "while V-ing"
+    taKotoGaAru,              // ～たことがある: "have V-ed before"
+    youNiNaru,                // ～ようになる: "come to V"
+    // N3.2 flag
+    passive,                  // 受身: "X was V-ed by Y"
+    // N3.3 flags
+    causative,                // 使役: "X makes/lets Y do V"
+    causativePassive,         // 使役受身: "X is made to do V by Y"
+    // N3.4 flags
+    sonkeigo,                 // 尊敬語: honorific (respected subject)
+    kenjougo,                 // 謙譲語: humble (speaker self-deprecating)
+  } = spec;
+
+  const subjEn = PRONOUN_MAP[topicEn] || topicEn;
+
+  // --- LITERAL (Japanese-order gloss) ---
+  // Each token is rendered as [word-particle] where "word" is the English
+  // gloss stripped of any English preposition ("at university" → "university"
+  // since we add the Japanese particle tag separately).
+  const stripPrep = s => (s || '').replace(/^(at |in |to |from |for |with |my |the |a |an )/, '').trim();
+
+  const litParts = [];
+  if (topicEn)  litParts.push(`[${subjEn}-topic]`);
+  if (timeEn)   litParts.push(`[${timeEn}]`);
+  if (placeEn)  litParts.push(`[${stripPrep(placeEn)}-at]`);     // place で → -at (activity) or に (existence)
+  if (destEn)   litParts.push(`[${stripPrep(destEn)}-to]`);      // destination に → -to
+  if (targetEn) {
+    // For passive and causative-passive, the "target" slot is the agent ("by X").
+    // For causative, the "target" slot is the causee (the one being made to do
+    // something, usually marked に in Japanese — "to X" or "to-do" reading).
+    // Otherwise (give/receive), it's the recipient ("to X").
+    let tag, cleaned;
+    if (passive || causativePassive) {
+      tag = 'by';
+      cleaned = stripPrep(targetEn.replace(/^by /, ''));
+    } else if (causative) {
+      tag = 'have-do';
+      cleaned = stripPrep(targetEn);
+    } else {
+      tag = 'to';
+      cleaned = stripPrep(targetEn);
+    }
+    litParts.push(`[${cleaned}-${tag}]`);
+  }
+  if (objEn) {
+    const partLbl = objParticle === 'が' ? 'subj' : 'obj';
+    litParts.push(`[${objEn}-${partLbl}]`);
+  }
+  if (obj2En)   litParts.push(`[${obj2En}-obj]`);
+  // Verb position
+  if (adjKind) {
+    litParts.push(`[${adjEn}${neg ? '-not' : ''}]`);
+    litParts.push('[is]');
+  } else if (requestForm) {
+    litParts.push(`[${verbBase}-te-please]`);
+  } else if (naideForm) {
+    litParts.push(`[not-${verbBase}-doing]`);
+    litParts.push(`[${verbEn2}]`);
+  } else if (teConnect) {
+    litParts.push(`[${verbBase}-and]`);
+    litParts.push(`[${verbEn2}]`);
+  } else if (volitional) {
+    litParts.push(`[${verbBase}-let's]`);
+  } else if (taraForm) {
+    litParts.push(`[${verbBase}-if/when]`);
+    litParts.push(`[${verbEn2}]`);
+  } else if (naraForm) {
+    litParts.push(`[${verbBase}-if-assuming]`);
+    litParts.push(`[${verbEn2}]`);
+  } else if (toConditional) {
+    litParts.push(`[${verbBase}-whenever]`);
+    litParts.push(`[${verbEn2}]`);
+  } else if (kamoshirenai) {
+    litParts.push(`[${verbBase}-might]`);
+  } else if (deshou) {
+    litParts.push(`[${verbBase}-probably]`);
+  } else if (nagaraForm) {
+    litParts.push(`[${verbBase}-while]`);
+    litParts.push(`[${verbEn2}]`);
+  } else if (taKotoGaAru) {
+    litParts.push(`[${verbBase}-have-experience]`);
+  } else if (youNiNaru) {
+    litParts.push(`[${verbBase}-come-to${past ? '-past' : ''}]`);
+  } else if (passive) {
+    // [V-passive] or [V-passive-past]
+    litParts.push(`[${verbBase}-passive${past ? '-past' : ''}]`);
+  } else if (causative) {
+    litParts.push(`[${verbBase}-causative${past ? '-past' : ''}]`);
+  } else if (causativePassive) {
+    litParts.push(`[${verbBase}-caus-pass${past ? '-past' : ''}]`);
+  } else if (sonkeigo) {
+    litParts.push(`[${verbBase}-sonkeigo]`);
+  } else if (kenjougo) {
+    litParts.push(`[${verbBase}-kenjougo]`);
+  } else if (exists) {
+    // Existence verbs: [exist] or [not-exist] — no past/ongoing tags apply
+    // in the same way. Past tense gives [exist-past].
+    const parts = [];
+    if (neg) parts.push('not');
+    parts.push('exist');
+    if (past) parts.push('past');
+    litParts.push(`[${parts.join('-')}]`);
+  } else {
+    // Normal action verbs
+    const tags = [];
+    if (past)      tags.push('past');
+    if (teIru)     tags.push('ongoing');
+    if (tai)       tags.push('want-to');
+    if (potential) tags.push('can');
+    if (neg)       tags.push('not');
+    litParts.push(`[${verbBase}${tags.length ? '-' + tags.join('-') : ''}]`);
+  }
+  const literal = litParts.join(' ');
+
+  // --- NATURAL (proper English SVO) ---
+  // Helper: append optional trailing slots (place, target, time) to a sentence
+  // base. Every branch should call this so time/place are not silently dropped.
+  const trailingSlots = () => {
+    const trail = [];
+    if (placeEn) trail.push(placeEn.startsWith('at ') || placeEn.startsWith('in ') ? placeEn : 'at ' + placeEn);
+    if (timeEn)  trail.push(timeEn);
+    return trail.length ? ' ' + trail.join(' ') : '';
+  };
+
+  let natural;
+  if (adjKind) {
+    // "X is/was adj" / "X is/was not adj" — adjectives can be past tense too
+    const sg = is3ps(subjEn) || subjEn.toLowerCase() === 'i';
+    let cop;
+    if (past) cop = sg ? 'was' : 'were';
+    else cop = is3ps(subjEn) ? 'is' : (subjEn.toLowerCase() === 'i' ? 'am' : 'are');
+    natural = `${cap(subjEn)} ${cop}${neg ? ' not' : ''} ${adjEn}`;
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (exists) {
+    // "X is/was at Y" — handles past/neg combinations; appends time at end
+    const sg = is3ps(subjEn) || subjEn.toLowerCase() === 'i';
+    let cop;
+    if (past) cop = sg ? 'was' : 'were';
+    else cop = is3ps(subjEn) ? 'is' : (subjEn.toLowerCase() === 'i' ? 'am' : 'are');
+    const negStr = neg ? ' not' : '';
+    if (placeEn) {
+      const where = placeEn.replace(/^at at /,'at ').replace(/^at in /,'in ');
+      natural = `${cap(subjEn)} ${cop}${negStr} ${where}`;
+    } else {
+      natural = `${cap(subjEn)} ${cop}${negStr} here`;
+    }
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (requestForm) {
+    // "Please V the object [at place] [time]"
+    const objPart = objEn ? ` ${objEn}` : '';
+    natural = `Please ${verbBase}${objPart}` + trailingSlots();
+  } else if (naideForm) {
+    // "[Subject] [V2s] without V1-ing [obj1] [at place] [time]"
+    // Note: in "do X without doing Y", the obj of the not-doing-verb (V1)
+    // attaches to the without-clause, not the main verb.
+    const v1ing = (base => {
+      const map = {
+        'eat':'eating','drink':'drinking','read':'reading','write':'writing','speak':'speaking',
+        'listen to':'listening to','watch':'watching','study':'studying',
+        'go':'going','sleep':'sleeping','wake up':'waking up','swim':'swimming',
+        'do':'doing','wait':'waiting','use':'using','work':'working','rest':'resting',
+      };
+      if (map[base]) return map[base];
+      // Smart fallback: bathe → bathing
+      if (base.endsWith('e') && !base.endsWith('ee')) return base.slice(0,-1) + 'ing';
+      return base + 'ing';
+    })(verbBase);
+    const v2 = conjugateEnVerb(verbEn2, {subject: subjEn});
+    const objPart = objEn ? ` ${objEn}` : '';
+    natural = `${cap(subjEn)} ${v2} without${objPart ? objPart + ' being' : ''} ${v1ing}`.replace(/\s+/g,' ');
+    // Simpler form when no obj: "I study without eating"
+    if (!objEn) natural = `${cap(subjEn)} ${v2} without ${v1ing}`;
+    else        natural = `${cap(subjEn)} ${v2} without ${v1ing} ${objEn}`;
+    natural += trailingSlots();
+  } else if (teConnect) {
+    // "S V1s [obj1] [at place] and V2s [obj2] [time]"
+    const v1 = conjugateEnVerb(verbBase, {past, subject: subjEn});
+    const v2 = conjugateEnVerb(verbEn2, {past, subject: subjEn});
+    const obj1Part = objEn ? ` ${objEn}` : '';
+    const obj2Part = obj2En ? ` ${obj2En}` : '';
+    const placePart = placeEn ? ` ${placeEn.startsWith('at ') ? placeEn : 'at ' + placeEn}` : '';
+    natural = `${cap(subjEn)} ${v1}${obj1Part}${placePart} and ${v2}${obj2Part}`;
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (volitional) {
+    // "Let's V [obj] [at place] [time]"
+    const objPart = objEn ? ` ${objEn}` : '';
+    natural = `Let's ${verbBase}${objPart}` + trailingSlots();
+  } else if (taraForm) {
+    // "When [subj] Vs [obj1], [subj] will V2 [obj2] [time]"
+    const v1 = conjugateEnVerb(verbBase, {subject: subjEn});
+    const obj1Part = objEn ? ` ${objEn}` : '';
+    const obj2Part = obj2En ? ` ${obj2En}` : '';
+    natural = `When ${subjEn} ${v1}${obj1Part}, ${subjEn} will ${verbEn2}${obj2Part}`;
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (naraForm) {
+    // "If [subj] is going to V1 [obj1], [subj] will V2 [obj2]"
+    // ～なら is "if (assuming X is the case)" — slightly different from たら.
+    // Common English rendering: "If X, then Y"
+    const v1 = conjugateEnVerb(verbBase, {subject: subjEn});
+    const obj1Part = objEn ? ` ${objEn}` : '';
+    const obj2Part = obj2En ? ` ${obj2En}` : '';
+    natural = `If ${subjEn} ${v1}${obj1Part}, ${subjEn} will ${verbEn2}${obj2Part}`;
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (toConditional) {
+    // "Whenever [subj] V1s [obj1], [subj] V2s [obj2]" — habitual/general truth
+    const v1 = conjugateEnVerb(verbBase, {subject: subjEn});
+    const v2 = conjugateEnVerb(verbEn2, {subject: subjEn});
+    const obj1Part = objEn ? ` ${objEn}` : '';
+    const obj2Part = obj2En ? ` ${obj2En}` : '';
+    natural = `Whenever ${subjEn} ${v1}${obj1Part}, ${subjEn} ${v2}${obj2Part}`;
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (kamoshirenai) {
+    // "[subj] might V [obj] [at place] [time]"
+    const objPart = objEn ? ` ${objEn}` : '';
+    natural = `${cap(subjEn)} might ${verbBase}${objPart}` + trailingSlots();
+  } else if (deshou) {
+    // "[subj] probably V(s) [obj] [at place] [time]"
+    const v = conjugateEnVerb(verbBase, {subject: subjEn});
+    const objPart = objEn ? ` ${objEn}` : '';
+    natural = `${cap(subjEn)} probably ${v}${objPart}` + trailingSlots();
+  } else if (nagaraForm) {
+    // "[subj] V2s [obj2] while V1-ing [obj1]"
+    const v1ing = (base => {
+      const map = {
+        'eat':'eating','drink':'drinking','read':'reading','write':'writing','speak':'speaking',
+        'listen to':'listening to','watch':'watching','study':'studying',
+        'go':'going','sleep':'sleeping','wake up':'waking up','swim':'swimming',
+        'do':'doing','wait':'waiting','use':'using','work':'working','rest':'resting',
+        'walk':'walking','run':'running','think':'thinking','say':'saying','know':'knowing',
+        'have':'having','make':'making','start':'starting','finish':'finishing',
+      };
+      if (map[base]) return map[base];
+      if (base.endsWith('e') && !base.endsWith('ee')) return base.slice(0,-1) + 'ing';
+      return base + 'ing';
+    })(verbBase);
+    const v2 = conjugateEnVerb(verbEn2, {subject: subjEn});
+    const obj1Part = objEn ? ` ${objEn}` : '';
+    const obj2Part = obj2En ? ` ${obj2En}` : '';
+    natural = `${cap(subjEn)} ${v2}${obj2Part} while ${v1ing}${obj1Part}`;
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (taKotoGaAru) {
+    // "[subj] has/have V-ed [obj] before"
+    const pastPart = pastParticiple(verbBase);
+    const aux = is3ps(subjEn) ? 'has' : 'have';
+    const objPart = objEn ? ` ${objEn}` : '';
+    natural = `${cap(subjEn)} ${aux} ${pastPart}${objPart} before`;
+  } else if (youNiNaru) {
+    // "[subj] has/have come to V [obj]" or past "[subj] came to V [obj]"
+    const aux = is3ps(subjEn) ? 'has' : 'have';
+    const objPart = objEn ? ` ${objEn}` : '';
+    if (past) {
+      natural = `${cap(subjEn)} came to ${verbBase}${objPart}`;
+    } else {
+      natural = `${cap(subjEn)} ${aux} come to ${verbBase}${objPart}`;
+    }
+  } else if (passive) {
+    // "[subj] is/was V-ed [obj] by [agent]"
+    const pastPart = pastParticiple(verbBase);
+    const sg = is3ps(subjEn) || subjEn.toLowerCase() === 'i';
+    const agentObjForm = targetEn ? (PRONOUN_OBJ_MAP[targetEn] || targetEn) : null;
+    const agentPart = agentObjForm
+      ? (agentObjForm.startsWith('by ') ? ` ${agentObjForm}` : ` by ${agentObjForm}`)
+      : '';
+    if (objEn) {
+      // Indirect passive (suffering passive): "[Topic] had [obj] V-ed by [agent]"
+      // e.g., "You had the window closed by me" — captures the Japanese
+      // suffering-passive nuance reasonably well.
+      const had = past
+        ? (sg ? 'had' : 'had')
+        : (is3ps(subjEn) ? 'has' : (subjEn.toLowerCase() === 'i' ? 'have' : 'have'));
+      natural = `${cap(subjEn)} ${had} ${objEn} ${pastPart}${agentPart}`;
+    } else {
+      // Direct passive: "[subj] is/was V-ed by [agent]"
+      let cop;
+      if (past) cop = sg ? 'was' : 'were';
+      else      cop = is3ps(subjEn) ? 'is' : (subjEn.toLowerCase() === 'i' ? 'am' : 'are');
+      natural = `${cap(subjEn)} ${cop} ${pastPart}${agentPart}`;
+    }
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (causative) {
+    // "[Causer] makes/lets [causee] V [obj]" — past: "made/let"
+    // We use "have/has X V" as a softer equivalent of に-causative
+    // ("makes Y V" implies compulsion; "has Y V" is more neutral).
+    const causeeObjForm = targetEn ? (PRONOUN_OBJ_MAP[targetEn] || targetEn) : null;
+    const objPart = objEn ? ` ${objEn}` : '';
+    let auxVerb;
+    if (past) {
+      auxVerb = 'had';
+    } else {
+      auxVerb = is3ps(subjEn) ? 'has' : (subjEn.toLowerCase() === 'i' ? 'have' : 'have');
+    }
+    natural = `${cap(subjEn)} ${auxVerb} ${causeeObjForm} ${verbBase}${objPart}`;
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (causativePassive) {
+    // "[Topic] is/was made to V [obj] by [causer]"
+    const causerObjForm = targetEn ? (PRONOUN_OBJ_MAP[targetEn] || targetEn) : null;
+    const causerPart = causerObjForm
+      ? (causerObjForm.startsWith('by ') ? ` ${causerObjForm}` : ` by ${causerObjForm}`)
+      : '';
+    const sg = is3ps(subjEn) || subjEn.toLowerCase() === 'i';
+    let cop;
+    if (past) cop = sg ? 'was' : 'were';
+    else      cop = is3ps(subjEn) ? 'is' : (subjEn.toLowerCase() === 'i' ? 'am' : 'are');
+    const objPart = objEn ? ` ${objEn}` : '';
+    natural = `${cap(subjEn)} ${cop} made to ${verbBase}${objPart}${causerPart}`;
+    if (timeEn) natural += ' ' + timeEn;
+  } else if (sonkeigo) {
+    // Honorific: render the subject's action with deferential English.
+    // Japanese keigo doesn't translate one-to-one, so we use a polite tag.
+    // "X V-s [obj] (honorific)" — preserves the meaning, signals the register.
+    const v = conjugateEnVerb(verbBase, {subject: subjEn});
+    const objPart = objEn ? ` ${objEn}` : '';
+    natural = `${cap(subjEn)} ${v}${objPart} [honorific]`;
+  } else if (kenjougo) {
+    // Humble: speaker lowers self. Topic is always "I".
+    // English uses "humbly" or just renders politely.
+    const v = conjugateEnVerb(verbBase, {subject: subjEn});
+    const objPart = objEn ? ` ${objEn}` : '';
+    natural = `${cap(subjEn)} humbly ${verbBase}${objPart}`;
+  } else {
+    // Standard SVO sentence — already handles all slots correctly
+    // Idiomatic verb+object phrases: some Japanese verb-object combinations
+    // map to a single English phrase. Handle them here so the output reads
+    // naturally rather than literally.
+    let effectiveVerb = verbBase;
+    let effectiveObj = objEn;
+    if (verbBase === 'bathe' && objEn === 'shower') {
+      effectiveVerb = 'take';
+      effectiveObj = 'a shower';
+    }
+    const verb = conjugateEnVerb(effectiveVerb, {past, neg, teIru, tai, potential, subject: subjEn});
+    const parts = [cap(subjEn), verb];
+    if (effectiveObj) parts.push(effectiveObj);
+    if (targetEn) parts.push(/^(to |from |for |with )/.test(targetEn) ? targetEn : 'to ' + targetEn);
+    if (destEn)   parts.push(destEn.startsWith('to ') || destEn.startsWith('home') ? destEn : 'to ' + destEn);
+    if (placeEn)  parts.push(placeEn.startsWith('at ') || placeEn.startsWith('in ') ? placeEn : 'at ' + placeEn);
+    if (timeEn)   parts.push(timeEn);
+    natural = parts.join(' ');
+  }
+  natural = natural.trim().replace(/\s+/g,' ') + '.';
+  // Make sure first char is capitalised
+  natural = natural.charAt(0).toUpperCase() + natural.slice(1);
+
+  return { literal, natural };
+}
+
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+
+const rand = a => a[Math.floor(Math.random()*a.length)];
+
+// weightedRand — picks an item from `arr` with probability inversely
+// proportional to its `freq` rank (lower rank = more common = higher
+// chance of being picked). Falls back to uniform random if items lack
+// freq fields. Uses a soft floor so even uncommon items appear sometimes.
+//
+// Frequency data comes from JPDB v2.2 frequency rankings (CC BY).
+// Weight curve: weight = 1 / log2(freq + 8). This is a gentler curve
+// than 1/freq, so:
+//   - rank 50  → weight ≈ 0.18
+//   - rank 500 → weight ≈ 0.11
+//   - rank 5000→ weight ≈ 0.078
+//   - rank 50k → weight ≈ 0.063
+// Most-common items are ~3x more likely than the rarest — meaningful
+// preference for common words without making rare ones invisible.
+function weightedRand(arr) {
+  if (!arr || arr.length === 0) return undefined;
+  if (arr.length === 1) return arr[0];
+  // If no freq data, fall back to uniform
+  if (!arr.some(x => typeof x.freq === 'number')) return rand(arr);
+  const weights = arr.map(x => {
+    const f = typeof x.freq === 'number' ? x.freq : 5000; // unknown → moderate
+    return 1 / Math.log2(f + 8);
+  });
+  const total = weights.reduce((a,b) => a+b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < arr.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return arr[i];
+  }
+  return arr[arr.length - 1];
+}
+const maybe= p => Math.random()<p;
+// Returns object list for a verb, or null if verb has no defined object set.
+// A verb with no object list should simply not have an object card added.
+const getObj = v => OBJ[v.en] || null;
+const MOVE  = new Set(['いく','くる','かえる','でかける']);
+
+// Returns verbs available at or below the given JLPT sublevel.
+function verbsUpTo(level) {
+  const maxRank = LEVEL_RANK[level] ?? 0;
+  return VERBS.filter(v => (LEVEL_RANK[v.level] ?? 0) <= maxRank);
+}
+// Returns grammar patterns unlocked at the given JLPT sublevel.
+function patternsFor(level) {
+  return (LEVEL_GRAMMAR[level] || LEVEL_GRAMMAR['N4.3']).patterns;
+}
+
+function genQ() {
+  const patterns = patternsFor(selectedLevel);
+  const verbs    = verbsUpTo(selectedLevel);
+  const wt = {'masu':9,'masen':7,'past':7,'loc-ni':5,'loc-de':6,'adjectives':5,
+    'te-kudasai':5,'te-connect':6,'te-iru':5,'naide':4,'give-receive':4,'tai':5,
+    'potential':4,'volitional':4,'tara':4};
+  let pool=[];
+  for(const p of patterns) pool.push(...Array(wt[p]||3).fill(p));
+  let pat = rand(pool);
+
+  const verb = weightedRand(verbs);
+
+  // Existence verbs (ある/いる) can't use で — they take location with に
+  // instead. If the randomly-chosen pattern is loc-de but we picked an
+  // existence verb, redirect to a compatible pattern. Similarly, ある/いる
+  // shouldn't appear with たい (want-to-exist), potential, volitional,
+  // or ないで — redirect those to masu/masen.
+  const isExistence = verb.kana === 'ある' || verb.kana === 'いる';
+  const isMove = MOVE.has(verb.kana);
+  // Intransitive walking/running/swimming/etc.: passive forms exist but are
+  // semantically odd in beginner contexts. Used as a guard for passive.
+  const isIntransitiveMotion = new Set(['あるく','はしる','およぐ','あそぶ','はたらく','やすむ','でかける','でる','はいる']).has(verb.kana);
+  // Compound する verbs that don't take a clear object/agent passive
+  const isAwkwardPassive = new Set(['りょこうする','そつぎょうする','べんきょうする']).has(verb.kana);
+  // Keigo compatibility: some verbs don't form clean honorific/humble.
+  //   ある has no standard keigo form.
+  //   Verbs whose ます-stem is too short (single mora) and have no irregular
+  //   substitution sound stilted in regular keigo (お+stem+になる).
+  const isNotKeigoCompatible = !isKeigoCompatible(verb);
+
+  // Pattern ↔ verb-type compatibility. Certain patterns only make sense with
+  // certain verb types:
+  //   - loc-de  needs an ACTIVITY verb (not movement, not existence)
+  //   - ないで   is awkward with existence verbs and movement verbs
+  //   - tai / potential / volitional / give-receive / tara don't combine
+  //     meaningfully with existence verbs
+  //   - te-iru requires an action/state — existence verbs have this role already
+  const badPairs = {
+    'loc-de':     [isMove, isExistence],
+    'naide':      [isExistence],
+    'tai':        [isExistence],
+    'potential':  [isExistence],
+    'volitional': [isExistence],
+    'give-receive': [isExistence, isMove],
+    'tara':       [isExistence],
+    'te-iru':     [isExistence],
+    'te-kudasai': [isExistence],
+    'te-connect': [isExistence],
+    // N3.1 — most patterns work with any verb. Exclusions:
+    //   nara/to/nagara/ta-koto-ga-aru need an action verb, not existence.
+    //   ようになる ("come to V") with existence verbs is grammatically ok
+    //     ("came to be at university") but semantically odd; skip.
+    'nara':            [isExistence],
+    'to-conditional':  [isExistence],
+    'nagara':          [isExistence, isMove],
+    'ta-koto-ga-aru':  [isExistence],
+    'you-ni-naru':     [isExistence],
+    // kamoshirenai and deshou work with all verb types.
+    // N3.2 — passive needs an action verb that has a doer/recipient relation.
+    //   Existence verbs don't really make sense passive ("books are existed by..."?).
+    //   Movement verbs rarely passivize sensibly in beginner contexts.
+    //   Intransitive motion verbs (歩く, 走る, etc.) and awkward する verbs
+    //   (旅行する, 卒業する, 勉強する) don't take meaningful passives.
+    'passive':         [isExistence, isMove, isIntransitiveMotion, isAwkwardPassive],
+    // N3.3 — causative needs an action verb, doesn't make sense with existence.
+    //   Causative-passive shares the same constraints + intransitive issues.
+    'causative':         [isExistence, isAwkwardPassive],
+    'causative-passive': [isExistence, isMove, isIntransitiveMotion, isAwkwardPassive],
+    // N3.4 — keigo. Some verbs don't have natural keigo forms.
+    //   ある: no clean keigo (use ござる at advanced level only).
+    //   Movement verbs work but use irregular substitutions (mostly handled
+    //   in the SONKEIGO_IRREG / KENJOUGO_IRREG maps).
+    //   Verbs without natural keigo coverage are filtered via isKeigoCompatible
+    //   check applied to the verb pool BEFORE pattern selection (see below).
+    'sonkeigo': [isNotKeigoCompatible],
+    'kenjougo': [isNotKeigoCompatible],
+  };
+  const blockers = badPairs[pat];
+  if (blockers && blockers.some(Boolean)) {
+    // Redirect to the simplest-always-valid pattern
+    pat = maybe(0.5) ? 'masu' : 'masen';
+  }
+
+  // Topic selection depends on verb: ある needs inanimate, いる needs animate.
+  // All other verbs accept any (animate) topic from the main TOPICS pool.
+  let topic;
+  if (verb.kana === 'ある') {
+    topic = weightedRand(INANIMATE_SUBJECTS);
+  } else if (verb.kana === 'いる') {
+    topic = weightedRand(TOPICS.filter(t => t.animate));
+  } else {
+    topic = weightedRand(TOPICS);
+  }
+
+  const objList = getObj(verb);               // may be null
+  const obj  = objList ? weightedRand(objList) : null; // null when verb has no object
+  const loc  = weightedRand(LOCS);
+  const dest = weightedRand(DESTS);
+  const time = weightedRand(TIMES);
+  const adjI = weightedRand(ADJ_I);
+  const adjNA= weightedRand(ADJ_NA);
+  const neg  = maybe(0.3);
+
+  const tp=()=>topic.kana+'は';
+  const op=()=>obj?obj.kana+'を':'';
+  const lp=()=>loc.kana+'で';
+  const dp=()=>dest.kana+'に';
+  const tm=()=>time.kana;
+
+  let q={pat,cards:[],answer:'',hint:'',breakdown:[],
+    lessonTag:`${selectedLevel} · JLPT`,grammarTag:''};
+
+  switch(pat) {
+    case 'masu': case 'masen': {
+      const n=neg||(pat==='masen');
+      const vf=n?masen(verb):masu(verb);
+      // Present/future tense: pick from non-past time words
+      const localTime = time.tense === 'past' ? weightedRand(TIMES_NON_PAST) : time;
+      const localTm = () => localTime.kana;
+      const wO=verb.trans&&obj&&maybe(0.7), wT=maybe(0.5);
+      // Handle verbs that take a special particle (に, が, or を for exit/graduate)
+      // Existence verbs (ある/いる) also use に for their location, so we route
+      // them through this same mechanism but with higher probability since
+      // existence sentences benefit strongly from a location.
+      const wExtra = (!verb.trans && verb.wParticle && maybe(0.6))
+                     || (isExistence && maybe(0.75));
+      let extraCard=null, extraKana='';
+      if (wExtra) {
+        if (verb.wParticle === 'に' && verb.en === 'meet') {
+          extraCard = {role:'target', en:'friend', kana:'ともだち'};
+          extraKana = 'ともだちに';
+        } else if (verb.wParticle === 'に' && verb.en === 'ride') {
+          extraCard = {role:'object', en:'bus', kana:'バス'};
+          extraKana = 'バスに';
+        } else if (verb.wParticle === 'に' && verb.en === 'enter') {
+          extraCard = {role:'location', en:'the room', kana:'へや'};
+          extraKana = 'へやに';
+        } else if (verb.wParticle === 'を' && verb.en === 'exit') {
+          extraCard = {role:'location', en:'the room', kana:'へや'};
+          extraKana = 'へやを';
+        } else if (verb.wParticle === 'が' && verb.en === 'understand') {
+          extraCard = {role:'object', en:'Japanese', kana:'にほんご'};
+          extraKana = 'にほんごが';
+        } else if (verb.wParticle === 'を' && verb.en === 'graduate') {
+          extraCard = {role:'location', en:'university', kana:'だいがく'};
+          extraKana = 'だいがくを';
+        } else if (isExistence) {
+          // For ある/いる, pick a location with に meaning "at/in [place]".
+          // LOCS entries already include "at X" in their English form, so
+          // use place.en directly (don't double-prefix).
+          const place = weightedRand(LOCS);
+          extraCard = {role:'location', en:place.en, kana:place.kana};
+          extraKana = place.kana+'に';
+        }
+      }
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wT?[{role:'time',en:localTime.en,kana:localTime.kana}]:[]),
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        ...(extraCard?[extraCard]:[]),
+        {role:'verb',en:(n?'do not ':'')+verb.en,kana:vf,dictKana:verb.kana}];
+      q.answer=tp()+(wT?localTm():'')+(wO?op():'')+(extraCard?extraKana:'')+vf;
+      q.grammarTag=n?'～ません':'～ます';
+      q.hint=`Structure: [topic]は${wT?' [time]':''}${wO?' [object]を':''} [verb${n?'ません':'ます'}]`;
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en,note:'topic marker'},
+        ...(wT?[{jp:localTime.kana,particle:localTime.kana.endsWith('に')?'に':'',role:'time',en:localTime.en,note:'time (specific = に)'}]:[]),
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en,note:'direct object'}]:[]),
+        ...(extraCard?[{jp:extraKana,particle:verb.wParticle || (isExistence ? 'に' : ''),role:extraCard.role,en:extraCard.en,note:isExistence ? 'location of existence' : 'verb-specific particle'}]:[]),
+        {jp:vf,particle:'',role:'verb',en:verb.en,note:n?'polite negative':'polite present'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        time: wT ? localTime.kana : null, timeEn: wT ? localTime.en : null,
+        obj: wO
+          ? obj.kana
+          : (extraCard && (
+              (verb.wParticle === 'に' && (verb.en === 'meet' || verb.en === 'ride' || verb.en === 'enter')) ||
+              (verb.wParticle === 'が' && verb.en === 'understand') ||
+              (verb.wParticle === 'を' && (verb.en === 'exit' || verb.en === 'graduate'))
+            ) ? extraCard.kana : null),
+        objEn: wO
+          ? obj.en
+          : (extraCard && (
+              (verb.wParticle === 'に' && (verb.en === 'meet' || verb.en === 'ride' || verb.en === 'enter')) ||
+              (verb.wParticle === 'が' && verb.en === 'understand') ||
+              (verb.wParticle === 'を' && (verb.en === 'exit' || verb.en === 'graduate'))
+            ) ? extraCard.en : null),
+        place: extraCard && isExistence ? extraCard.kana : null,
+        placeEn: extraCard && isExistence ? extraCard.en : null,
+        verbBase: verb.en, neg: n,
+        exists: isExistence,
+      });
+      break;
+    }
+    case 'past': {
+      const n=neg;
+      const vf=n?masendeshita(verb):mashita(verb);
+      const wO=verb.trans&&obj&&maybe(0.6),wT=maybe(0.5),wL=!isMove&&maybe(0.4);
+      // For past-tense sentences, swap in a past-compatible time word
+      // (avoids "went out tomorrow").
+      const pastTime = time.tense === 'future' ? weightedRand(TIMES_PAST) : time;
+      const ptm = () => pastTime.kana;
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wT?[{role:'time',en:pastTime.en,kana:pastTime.kana}]:[]),
+        ...(wL?[{role:'location',en:loc.en,kana:loc.kana}]:[]),
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:(n?'did not ':'')+verb.en+' (past)',kana:vf,dictKana:verb.kana}];
+      q.answer=tp()+(wT?ptm():'')+(wL?lp():'')+(wO?op():'')+vf;
+      q.grammarTag=n?'～ませんでした':'～ました';
+      q.hint='Past: replace ます→ました. Neg. past: ます→ませんでした';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wT?[{jp:pastTime.kana,particle:pastTime.kana.endsWith('に')?'に':'',role:'time',en:pastTime.en}]:[]),
+        ...(wL?[{jp:loc.kana+'で',particle:'で',role:'location',en:loc.en,note:'activity location'}]:[]),
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:vf,particle:'',role:'verb',en:verb.en,note:n?'polite past negative':'polite past'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        time: wT ? pastTime.kana : null, timeEn: wT ? pastTime.en : null,
+        place: wL ? loc.kana : null, placeEn: wL ? loc.en : null,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, past: true, neg: n,
+        exists: isExistence,
+      });
+      break;
+    }
+    case 'loc-de': {
+      const n=neg;
+      const vf=n?masen(verb):masu(verb);
+      const wO=verb.trans&&obj&&maybe(0.65),wT=maybe(0.45);
+      // Non-past verb: avoid past-only time words like "yesterday"
+      const localTime = time.tense === 'past' ? weightedRand(TIMES_NON_PAST) : time;
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wT?[{role:'time',en:localTime.en,kana:localTime.kana}]:[]),
+        {role:'location',en:loc.en,kana:loc.kana},
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:(n?'do not ':'')+verb.en,kana:vf,dictKana:verb.kana}];
+      q.answer=tp()+(wT?localTime.kana:'')+lp()+(wO?op():'')+vf;
+      q.grammarTag='で particle';
+      q.hint='で = where the activity takes place. Structure: [topic]は [place]で [object]を [verb]';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wT?[{jp:localTime.kana,particle:localTime.kana.endsWith('に')?'に':'',role:'time',en:localTime.en}]:[]),
+        {jp:loc.kana+'で',particle:'で',role:'location',en:loc.en,note:'activity location'},
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:vf,particle:'',role:'verb',en:verb.en},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        time: wT ? localTime.kana : null, timeEn: wT ? localTime.en : null,
+        place: loc.kana, placeEn: loc.en,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, neg: n,
+      });
+      break;
+    }
+    case 'loc-ni': {
+      const mv=rand(verbs.filter(v=>MOVE.has(v.kana)))||verb;
+      // かえる already means "go home", so exclude うち as its destination
+      // (avoid "goes home to home" redundancy). Similarly, pick a destination
+      // that's not the verb's implicit target.
+      const destPool = mv.kana === 'かえる'
+        ? DESTS.filter(d => d.kana !== 'うち')
+        : DESTS;
+      const dest = weightedRand(destPool);
+      const dp=()=>dest.kana+'に';
+      const vf=masu(mv);
+      const wT=maybe(0.5);
+      // Non-past verb: avoid past-only time words
+      const localTime = time.tense === 'past' ? weightedRand(TIMES_NON_PAST) : time;
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wT?[{role:'time',en:localTime.en,kana:localTime.kana}]:[]),
+        {role:'location',en:dest.en,kana:dest.kana},
+        {role:'verb',en:mv.en,kana:vf,dictKana:mv.kana}];
+      q.answer=tp()+(wT?localTime.kana:'')+dp()+vf;
+      q.grammarTag='に particle';
+      q.hint='に = destination for movement verbs (いく、くる、かえる). Structure: [topic]は [place]に [verb]';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wT?[{jp:localTime.kana,particle:localTime.kana.endsWith('に')?'に':'',role:'time',en:localTime.en}]:[]),
+        {jp:dest.kana+'に',particle:'に',role:'destination',en:dest.en,note:'destination marker'},
+        {jp:vf,particle:'',role:'verb',en:mv.en,note:'movement verb'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        time: wT ? localTime.kana : null, timeEn: wT ? localTime.en : null,
+        dest: dest.kana, destEn: dest.en,
+        verbBase: mv.en === 'go home' ? 'go back' : mv.en,
+      });
+      break;
+    }
+    case 'adjectives': {
+      const uI=maybe(0.55);
+      const adj=uI?adjI:adjNA;
+      const n=maybe(0.35);
+      const pred=uI?(n?adj.neg+'です':adj.kana+'です'):(n?adj.neg+'です':adj.kana+'です');
+      const subj=weightedRand(ADJ_SUBJECTS);
+      q.cards=[{role:'topic',en:subj.en,kana:subj.kana},{role:'verb',en:(n?'not ':'')+adj.en,kana:pred,dictKana:adj.kana}];
+      q.answer=subj.kana+'は'+pred;
+      q.grammarTag=uI?'い-adjective':'な-adjective';
+      q.hint=uI?'い-adj: [adj]です. Neg: drop い → くないです.':'な-adj: [adj]です. Neg: [adj]じゃないです.';
+      q.breakdown=[
+        {jp:subj.kana+'は',particle:'は',role:'topic',en:subj.en},
+        {jp:pred,particle:'',role:'predicate',en:(n?'not ':'')+adj.en,note:uI?'い-adj+です':'な-adj+です'},
+      ];
+      q.translation = buildTranslation({
+        topic: subj.kana, topicEn: subj.en,
+        verbBase: '', adjKind: uI ? 'i' : 'na', adjEn: adj.en, neg: n,
+      });
+      break;
+    }
+    case 'te-kudasai': {
+      const tf=teForm(verb);
+      const wO=verb.trans&&obj&&maybe(0.7);
+      q.cards=[
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'please '+verb.en,kana:tf+'ください',dictKana:verb.kana}];
+      q.answer=(wO?op():'')+tf+'ください';
+      q.grammarTag='～てください';
+      q.hint='て-form + ください = "please do ~". Apply て-form rules first.';
+      q.breakdown=[
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:tf,particle:'',role:'て-form',en:verb.en,note:'て-form of verb'},
+        {jp:'ください',particle:'',role:'request',en:'please'},
+      ];
+      q.translation = buildTranslation({
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, requestForm: true,
+      });
+      break;
+    }
+    case 'te-connect': {
+      const v2=rand(verbs.filter(v=>v.kana!==verb.kana));
+      const tf=teForm(verb); const vf2=masu(v2);
+      const o2list=getObj(v2); const o2=o2list?rand(o2list):null;
+      const wO1=verb.trans&&obj&&maybe(0.6), wO2=v2.trans&&o2&&maybe(0.55);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wO1?[{role:'object',en:obj.en+' (1st)',kana:obj.kana}]:[]),
+        {role:'verb',en:verb.en+' and…',kana:tf,dictKana:verb.kana},
+        ...(wO2?[{role:'object',en:o2.en+' (2nd)',kana:o2.kana}]:[]),
+        {role:'verb2',en:'…then '+v2.en,kana:vf2,dictKana:v2.kana}];
+      q.answer=tp()+(wO1?obj.kana+'を':'')+tf+(wO2?o2.kana+'を':'')+vf2;
+      q.grammarTag='～て (connect)';
+      q.hint='Use て-form to connect two actions: V1て + V2ます = "do A, then B".';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wO1?[{jp:obj.kana+'を',particle:'を',role:'object 1',en:obj.en}]:[]),
+        {jp:tf,particle:'',role:'て-form',en:verb.en,note:'て-form connects in sequence'},
+        ...(wO2?[{jp:o2.kana+'を',particle:'を',role:'object 2',en:o2.en}]:[]),
+        {jp:vf2,particle:'',role:'verb 2',en:v2.en,note:'final verb (polite)'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO1 ? obj.kana : null, objEn: wO1 ? obj.en : null,
+        obj2: wO2 ? o2.kana : null, obj2En: wO2 ? o2.en : null,
+        verbBase: verb.en, verbEn2: v2.en, teConnect: true,
+      });
+      break;
+    }
+    case 'te-iru': {
+      const tf=teForm(verb);
+      const wO=verb.trans&&obj&&maybe(0.65), wL=maybe(0.4);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wL?[{role:'location',en:loc.en,kana:loc.kana}]:[]),
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:verb.en+' (right now)',kana:tf+'います',dictKana:verb.kana}];
+      q.answer=tp()+(wL?lp():'')+(wO?op():'')+tf+'います';
+      q.grammarTag='～ている';
+      q.hint='て-form + います = ongoing action ("is doing ~").';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wL?[{jp:loc.kana+'で',particle:'で',role:'location',en:loc.en}]:[]),
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:tf+'います',particle:'',role:'verb',en:verb.en+' (ongoing)',note:'て+います'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        place: wL ? loc.kana : null, placeEn: wL ? loc.en : null,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, teIru: true,
+      });
+      break;
+    }
+    case 'naide': {
+      const v2=rand(verbs.filter(v=>v.kana!==verb.kana));
+      const vf2=masu(v2);
+      const nf=naiForm(verb).slice(0,-1);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        {role:'verb',en:'without '+verb.en,kana:nf+'で',dictKana:verb.kana},
+        {role:'verb2',en:'…'+v2.en,kana:vf2,dictKana:v2.kana}];
+      q.answer=tp()+nf+'で'+vf2;
+      q.grammarTag='～ないで';
+      q.hint='～ないで = "without doing ~". Take nai-form, drop final い, add で.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        {jp:nf+'で',particle:'',role:'ないで',en:'without '+verb.en,note:'nai(drop い)+で'},
+        {jp:vf2,particle:'',role:'verb 2',en:v2.en},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        verbBase: verb.en, verbEn2: v2.en, naideForm: true,
+      });
+      break;
+    }
+    case 'give-receive': {
+      // Recipient must be a different person than the topic. Avoid building
+      // nonsense like "Mary gives a book to Mary".
+      const rcvrPool = [{en:'friend',kana:'ともだち'},{en:'teacher',kana:'せんせい'},{en:'Mary',kana:'メアリー'},{en:'Ken',kana:'ケン'}]
+        .filter(r => r.kana !== topic.kana && r.en !== topic.en);
+      const rcvr = rand(rcvrPool.length ? rcvrPool : [{en:'friend',kana:'ともだち'}]);
+      const gv=rand(VERBS.filter(v=>['あげる','もらう'].includes(v.kana)));
+      const gift=rand([{en:'book',kana:'ほん'},{en:'souvenir',kana:'おみやげ'},{en:'postcard',kana:'はがき'},{en:'present',kana:'プレゼント'}]);
+      const vf=masu(gv);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        {role:'target',en:(gv.kana==='もらう'?'from ':'to ')+rcvr.en,kana:rcvr.kana},
+        {role:'object',en:gift.en,kana:gift.kana},
+        {role:'verb',en:gv.en,kana:vf,dictKana:gv.kana}];
+      q.answer=tp()+rcvr.kana+'に'+gift.kana+'を'+vf;
+      q.grammarTag='あげる／もらう';
+      q.hint='[giver]は [receiver]に [thing]を あげます. / [receiver]は [giver]に [thing]を もらいます.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        {jp:rcvr.kana+'に',particle:'に',role:'target',en:rcvr.en,note:'recipient (に)'},
+        {jp:gift.kana+'を',particle:'を',role:'object',en:gift.en},
+        {jp:vf,particle:'',role:'verb',en:gv.en},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        target: rcvr.kana, targetEn: (gv.kana==='もらう' ? 'from ' : '') + rcvr.en,
+        obj: gift.kana, objEn: gift.en,
+        verbBase: gv.en,
+      });
+      break;
+    }
+    case 'tai': {
+      const stem=masuStem(verb);
+      const vf=stem+'たいです';
+      const wO=verb.trans&&obj&&maybe(0.65);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'want to '+verb.en,kana:vf,dictKana:verb.kana}];
+      q.answer=tp()+(wO?op():'')+vf;
+      q.grammarTag='～たい';
+      q.hint='～たい = "want to do": ます stem + たいです.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:vf,particle:'',role:'verb',en:'want to '+verb.en,note:'ます stem + たいです'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, tai: true,
+      });
+      break;
+    }
+    case 'potential': {
+      const pf=potForm(verb);
+      const wO=verb.trans&&obj&&maybe(0.6);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'can '+verb.en,kana:pf}];
+      q.answer=tp()+(wO?obj.kana+'が':'')+pf;
+      q.grammarTag='potential form';
+      q.hint='Can do: る→られます, う→e-row+ます, する→できます. Note: potential often uses が not を.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wO?[{jp:obj.kana+'が',particle:'が',role:'object',en:obj.en,note:'potential takes が'}]:[]),
+        {jp:pf,particle:'',role:'potential',en:'can '+verb.en},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null, objParticle: 'が',
+        verbBase: verb.en, potential: true,
+      });
+      break;
+    }
+    case 'volitional': {
+      // ～ましょう "let's V" — uses ます-stem + ましょう
+      // Always includes topic + verb; optional object/place
+      const vf = mashou(verb);
+      const wO = verb.trans && obj && maybe(0.6);
+      const wL = !isMove && maybe(0.35);
+      q.cards = [{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wL?[{role:'location',en:'at '+loc.en,kana:loc.kana}]:[]),
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:"let's "+verb.en,kana:vf,dictKana:verb.kana}];
+      q.answer = tp() + (wL?lp():'') + (wO?op():'') + vf;
+      q.grammarTag = '～ましょう';
+      q.hint = '～ましょう = "let\'s do ~": ます-stem + ましょう.';
+      q.breakdown = [
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wL?[{jp:loc.kana+'で',particle:'で',role:'location',en:loc.en,note:'activity location'}]:[]),
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:vf,particle:'',role:'volitional',en:"let's "+verb.en,note:'ます-stem + ましょう'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        place: wL ? loc.kana : null, placeEn: wL ? loc.en : null,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, volitional: true,
+      });
+      break;
+    }
+    case 'tara': {
+      // ～たら conditional: plain past form + ら, followed by a main clause.
+      // Structure: [Topic] は [V1-tara] [V2-masu form] →
+      // "When/If V1, I'll V2"
+      const v2 = rand(verbs.filter(v => v.kana !== verb.kana));
+      const tara = taraForm(verb);
+      const vf2 = masu(v2);
+      const wO1 = verb.trans && obj && maybe(0.55);
+      const o2list = getObj(v2);
+      const o2 = o2list ? rand(o2list) : null;
+      const wO2 = v2.trans && o2 && maybe(0.5);
+      q.cards = [{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wO1?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'if/when '+verb.en,kana:tara,dictKana:verb.kana},
+        ...(wO2?[{role:'object 2',en:o2.en,kana:o2.kana}]:[]),
+        {role:'verb2',en:v2.en,kana:vf2,dictKana:v2.kana}];
+      q.answer = tp() + (wO1?op():'') + tara + (wO2?o2.kana+'を':'') + vf2;
+      q.grammarTag = '～たら';
+      q.hint = '～たら = "if/when": plain-past form + ら, then main clause.';
+      q.breakdown = [
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wO1?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:tara,particle:'',role:'たら',en:'if/when '+verb.en,note:'plain-past + ら'},
+        ...(wO2?[{jp:o2.kana+'を',particle:'を',role:'object 2',en:o2.en}]:[]),
+        {jp:vf2,particle:'',role:'verb 2',en:v2.en,note:'main clause'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO1 ? obj.kana : null, objEn: wO1 ? obj.en : null,
+        obj2: wO2 ? o2.kana : null, obj2En: wO2 ? o2.en : null,
+        verbBase: verb.en, verbEn2: v2.en, taraForm: true,
+      });
+      break;
+    }
+    // ═══════════════════════════════════════════════
+    //  N3.1 PATTERNS — compositional, no new conjugation engines
+    // ═══════════════════════════════════════════════
+    case 'nara': {
+      // ～なら: "if X (is the case), then Y" — uses plain dictionary form
+      // Structure: [topic]は [V1-plain]なら、[V2-masu]
+      const v2 = rand(verbs.filter(v => v.kana !== verb.kana));
+      const naraStr = verb.kana + 'なら';
+      const vf2 = masu(v2);
+      const wO1 = verb.trans && obj && maybe(0.55);
+      const o2list = getObj(v2);
+      const o2 = o2list ? weightedRand(o2list) : null;
+      const wO2 = v2.trans && o2 && maybe(0.5);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wO1?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'if '+verb.en,kana:naraStr,dictKana:verb.kana},
+        ...(wO2?[{role:'object 2',en:o2.en,kana:o2.kana}]:[]),
+        {role:'verb2',en:v2.en,kana:vf2,dictKana:v2.kana}];
+      q.answer=tp()+(wO1?op():'')+naraStr+(wO2?o2.kana+'を':'')+vf2;
+      q.grammarTag='～なら';
+      q.hint='～なら = "if (assuming X)": plain dict form + なら, then main clause.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wO1?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:naraStr,particle:'',role:'なら',en:'if '+verb.en,note:'plain form + なら'},
+        ...(wO2?[{jp:o2.kana+'を',particle:'を',role:'object 2',en:o2.en}]:[]),
+        {jp:vf2,particle:'',role:'verb 2',en:v2.en,note:'main clause'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO1 ? obj.kana : null, objEn: wO1 ? obj.en : null,
+        obj2: wO2 ? o2.kana : null, obj2En: wO2 ? o2.en : null,
+        verbBase: verb.en, verbEn2: v2.en, naraForm: true,
+      });
+      break;
+    }
+    case 'to-conditional': {
+      // ～と: "whenever X happens, Y" — uses plain dictionary form
+      // Structure: [topic]は [V1-plain]と、[V2-masu]
+      const v2 = rand(verbs.filter(v => v.kana !== verb.kana));
+      const toStr = verb.kana + 'と';
+      const vf2 = masu(v2);
+      const wO1 = verb.trans && obj && maybe(0.55);
+      const o2list = getObj(v2);
+      const o2 = o2list ? weightedRand(o2list) : null;
+      const wO2 = v2.trans && o2 && maybe(0.5);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wO1?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'whenever '+verb.en,kana:toStr,dictKana:verb.kana},
+        ...(wO2?[{role:'object 2',en:o2.en,kana:o2.kana}]:[]),
+        {role:'verb2',en:v2.en,kana:vf2,dictKana:v2.kana}];
+      q.answer=tp()+(wO1?op():'')+toStr+(wO2?o2.kana+'を':'')+vf2;
+      q.grammarTag='～と (whenever)';
+      q.hint='～と = "whenever / if (general truth)": plain dict form + と, then main clause.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wO1?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:toStr,particle:'',role:'と',en:'whenever '+verb.en,note:'plain form + と'},
+        ...(wO2?[{jp:o2.kana+'を',particle:'を',role:'object 2',en:o2.en}]:[]),
+        {jp:vf2,particle:'',role:'verb 2',en:v2.en,note:'main clause'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO1 ? obj.kana : null, objEn: wO1 ? obj.en : null,
+        obj2: wO2 ? o2.kana : null, obj2En: wO2 ? o2.en : null,
+        verbBase: verb.en, verbEn2: v2.en, toConditional: true,
+      });
+      break;
+    }
+    case 'kamoshirenai': {
+      // ～かもしれない: "might V" — uses plain dictionary form
+      // Polite version: ～かもしれません
+      // Structure: [topic]は [V-plain]かもしれません
+      const km = verb.kana + 'かもしれません';
+      const wO = verb.trans && obj && maybe(0.6);
+      const wT = maybe(0.3);
+      const localTime = time && time.tense === 'past' ? weightedRand(TIMES_NON_PAST) : time;
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wT?[{role:'time',en:localTime.en,kana:localTime.kana}]:[]),
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'might '+verb.en,kana:km,dictKana:verb.kana}];
+      q.answer=tp()+(wT?localTime.kana:'')+(wO?op():'')+km;
+      q.grammarTag='～かもしれない';
+      q.hint='～かもしれない = "might / maybe": plain dict form + かもしれない (polite: かもしれません).';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wT?[{jp:localTime.kana,particle:localTime.kana.endsWith('に')?'に':'',role:'time',en:localTime.en}]:[]),
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:km,particle:'',role:'kamo',en:'might '+verb.en,note:'plain form + かもしれません'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        time: wT ? localTime.kana : null, timeEn: wT ? localTime.en : null,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, kamoshirenai: true,
+      });
+      break;
+    }
+    case 'deshou': {
+      // ～でしょう: "probably V / V, right?" — uses plain dictionary form
+      // Structure: [topic]は [V-plain]でしょう
+      const ds = verb.kana + 'でしょう';
+      const wO = verb.trans && obj && maybe(0.6);
+      const wT = maybe(0.3);
+      const localTime = time && time.tense === 'past' ? weightedRand(TIMES_NON_PAST) : time;
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wT?[{role:'time',en:localTime.en,kana:localTime.kana}]:[]),
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'probably '+verb.en,kana:ds,dictKana:verb.kana}];
+      q.answer=tp()+(wT?localTime.kana:'')+(wO?op():'')+ds;
+      q.grammarTag='～でしょう';
+      q.hint='～でしょう = "probably / I think": plain dict form + でしょう.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wT?[{jp:localTime.kana,particle:localTime.kana.endsWith('に')?'に':'',role:'time',en:localTime.en}]:[]),
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:ds,particle:'',role:'でしょう',en:'probably '+verb.en,note:'plain form + でしょう'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        time: wT ? localTime.kana : null, timeEn: wT ? localTime.en : null,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, deshou: true,
+      });
+      break;
+    }
+    case 'nagara': {
+      // ～ながら: "while doing V1, V2" — uses ます-stem + ながら + V2-masu
+      // Structure: [topic]は [V1-stem]ながら [V2-masu]
+      const v2 = rand(verbs.filter(v => v.kana !== verb.kana && !MOVE.has(v.kana) && v.kana !== 'ある' && v.kana !== 'いる'));
+      const ngStr = masuStem(verb) + 'ながら';
+      const vf2 = masu(v2);
+      const wO1 = verb.trans && obj && maybe(0.5);
+      const o2list = getObj(v2);
+      const o2 = o2list ? weightedRand(o2list) : null;
+      const wO2 = v2.trans && o2 && maybe(0.5);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wO1?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'while '+verb.en,kana:ngStr,dictKana:verb.kana},
+        ...(wO2?[{role:'object 2',en:o2.en,kana:o2.kana}]:[]),
+        {role:'verb2',en:v2.en,kana:vf2,dictKana:v2.kana}];
+      q.answer=tp()+(wO1?op():'')+ngStr+(wO2?o2.kana+'を':'')+vf2;
+      q.grammarTag='～ながら';
+      q.hint='～ながら = "while doing": ます-stem + ながら, then main clause.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wO1?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:ngStr,particle:'',role:'ながら',en:'while '+verb.en,note:'ます-stem + ながら'},
+        ...(wO2?[{jp:o2.kana+'を',particle:'を',role:'object 2',en:o2.en}]:[]),
+        {jp:vf2,particle:'',role:'verb 2',en:v2.en,note:'main clause'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO1 ? obj.kana : null, objEn: wO1 ? obj.en : null,
+        obj2: wO2 ? o2.kana : null, obj2En: wO2 ? o2.en : null,
+        verbBase: verb.en, verbEn2: v2.en, nagaraForm: true,
+      });
+      break;
+    }
+    case 'ta-koto-ga-aru': {
+      // ～たことがある: "have V-ed before / have experience of V-ing"
+      // Polite: ～たことがあります
+      // Structure: [topic]は [V-ta]ことがあります
+      const tk = taForm(verb) + 'ことがあります';
+      const wO = verb.trans && obj && maybe(0.55);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'have '+verb.en+' before',kana:tk,dictKana:verb.kana}];
+      q.answer=tp()+(wO?op():'')+tk;
+      q.grammarTag='～たことがある';
+      q.hint='～たことがある = "have ~ed before": plain past + ことがあります.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:tk,particle:'',role:'experience',en:'have '+verb.en+' before',note:'plain past + ことがあります'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, taKotoGaAru: true,
+      });
+      break;
+    }
+    case 'you-ni-naru': {
+      // ～ようになる: "come to do / become able to do"
+      // Polite: ～ようになります / ～ようになりました
+      // Structure: [topic]は [V-plain]ようになります (or なりました for past)
+      const past_form = maybe(0.5);
+      const yn = verb.kana + (past_form ? 'ようになりました' : 'ようになります');
+      const wO = verb.trans && obj && maybe(0.5);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:(past_form?'came to ':'come to ')+verb.en,kana:yn,dictKana:verb.kana}];
+      q.answer=tp()+(wO?op():'')+yn;
+      q.grammarTag='～ようになる';
+      q.hint='～ようになる = "come to / become able to": plain dict form + ようになる (なります).';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:yn,particle:'',role:'ようになる',en:(past_form?'came to ':'come to ')+verb.en,note:'plain form + ようになります'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, youNiNaru: true, past: past_form,
+      });
+      break;
+    }
+    // ═══════════════════════════════════════════════
+    //  N3.2 PATTERN — passive form (受身)
+    // ═══════════════════════════════════════════════
+    case 'passive': {
+      // Passive: "X was V-ed by Y"
+      // Structure: [topic]は [agent]に [obj]を [V-passive]
+      // Where:
+      //   topic = recipient/victim
+      //   agent = doer (animate, marked with に)
+      //   obj   = optional direct object (only for trans verbs)
+      // We pick an agent from animate TOPICS (not equal to the topic).
+      const past_form = maybe(0.5);
+      const vf = past_form ? passiveMashita(verb) : passiveMasu(verb);
+      // Agent: pick from animate topics, excluding the current topic
+      const animatePool = TOPICS.filter(t => t.animate && t.kana !== topic.kana);
+      const agent = weightedRand(animatePool);
+      const wO = verb.trans && obj && maybe(0.4);
+      // Decide: include "by [agent]" or not — Japanese frequently omits the
+      // agent for direct passive when context is clear.
+      const wAgent = maybe(0.7);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},
+        ...(wAgent?[{role:'agent',en:'by '+agent.en,kana:agent.kana}]:[]),
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'be '+verb.en,kana:vf,dictKana:verb.kana}];
+      q.answer=tp()+(wAgent?agent.kana+'に':'')+(wO?op():'')+vf;
+      q.grammarTag='passive 受身';
+      q.hint='Passive: る→られる, う→a-row+れる. Structure: [topic]は [agent]に [object]を [V-passive].';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en,note:'recipient/victim'},
+        ...(wAgent?[{jp:agent.kana+'に',particle:'に',role:'agent',en:'by '+agent.en,note:'agent (doer)'}]:[]),
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:vf,particle:'',role:'verb',en:'be '+verb.en,note:'passive form'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        target: wAgent ? agent.kana : null, targetEn: wAgent ? agent.en : null,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, past: past_form, passive: true,
+      });
+      break;
+    }
+    // ═══════════════════════════════════════════════
+    //  N3.3 PATTERNS — causative + causative-passive
+    // ═══════════════════════════════════════════════
+    case 'causative': {
+      // Causative: "X makes/lets Y do V"
+      // Structure: [topic]は [causee]に [obj]を [V-causative]
+      // We use に for the causee (more common, neutral). For intransitive
+      // verbs, を can also be used to mean "make" (as opposed to に "let"),
+      // but we keep に here for consistency.
+      const past_form = maybe(0.5);
+      const vfPlain = causativeForm(verb);
+      const vf = past_form ? vfPlain.slice(0,-1) + 'ました' : causativeMasu(verb);
+      // Causee: pick from animate topics, excluding the current topic
+      const animatePool = TOPICS.filter(t => t.animate && t.kana !== topic.kana);
+      const causee = weightedRand(animatePool);
+      const wO = verb.trans && obj && maybe(0.5);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana,role_note:'causer'},
+        {role:'causee',en:causee.en,kana:causee.kana,role_note:'has-them-do'},
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'make/let '+verb.en,kana:vf,dictKana:verb.kana}];
+      q.answer=tp()+causee.kana+'に'+(wO?op():'')+vf;
+      q.grammarTag='causative 使役';
+      q.hint='Causative: る→させる, う→a-row+せる. Structure: [causer]は [causee]に [obj]を [V-causative].';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en,note:'causer'},
+        {jp:causee.kana+'に',particle:'に',role:'causee',en:causee.en,note:'one made/let to do'},
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:vf,particle:'',role:'verb',en:'make/let '+verb.en,note:'causative form'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        target: causee.kana, targetEn: causee.en,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, past: past_form, causative: true,
+      });
+      break;
+    }
+    case 'causative-passive': {
+      // Causative-passive: "Y is made to do V (by X)"
+      // Structure: [topic]は [causer]に [obj]を [V-causative-passive]
+      // The topic is the one being made to do something (causee from
+      // causative perspective, but topic in this passive construction).
+      const past_form = maybe(0.5);
+      const vfPlain = causativePassiveForm(verb);
+      const vf = past_form ? vfPlain.slice(0,-1) + 'ました' : causativePassiveMasu(verb);
+      // Causer: animate topic that's making the topic do something
+      const animatePool = TOPICS.filter(t => t.animate && t.kana !== topic.kana);
+      const causer = weightedRand(animatePool);
+      const wO = verb.trans && obj && maybe(0.5);
+      const wAgent = maybe(0.7);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana,role_note:'causee'},
+        ...(wAgent?[{role:'causer',en:'by '+causer.en,kana:causer.kana}]:[]),
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:'be made to '+verb.en,kana:vf,dictKana:verb.kana}];
+      q.answer=tp()+(wAgent?causer.kana+'に':'')+(wO?op():'')+vf;
+      q.grammarTag='caus-pass 使役受身';
+      q.hint='Causative-passive: causative form + られる. Structure: [topic]は [causer]に [obj]を [V-caus-pass].';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en,note:'one made to do'},
+        ...(wAgent?[{jp:causer.kana+'に',particle:'に',role:'causer',en:'by '+causer.en,note:'who made them do it'}]:[]),
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:vf,particle:'',role:'verb',en:'be made to '+verb.en,note:'caus-pass form'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        target: wAgent ? causer.kana : null, targetEn: wAgent ? causer.en : null,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, past: past_form, causativePassive: true,
+      });
+      break;
+    }
+    // ═══════════════════════════════════════════════
+    //  N3.4 PATTERNS — keigo (敬語): sonkeigo + kenjougo
+    // ═══════════════════════════════════════════════
+    case 'sonkeigo': {
+      // Sonkeigo (尊敬語): honorific, used for the actions of someone respected.
+      // Topic must be a 3rd person — sonkeigo describes others' actions, not
+      // the speaker's own. Skip "I" and "you" as topics.
+      const honorifiableTopics = TOPICS.filter(t => t.animate && t.en !== 'I' && t.en !== 'you');
+      topic = weightedRand(honorifiableTopics) || topic;
+      const vf = SONKEIGO_IRREG[verb.kana] || regularSonkeigo(verb);
+      const wO = verb.trans && obj && maybe(0.5);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana,role_note:'respected person'},
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:verb.en+' (honorific)',kana:vf,dictKana:verb.kana}];
+      q.answer=tp()+(wO?op():'')+vf;
+      q.grammarTag='sonkeigo 尊敬語';
+      q.hint='Sonkeigo (honorific): describes actions of a respected person. Form: irregular substitution OR お+ます-stem+になります.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en,note:'respected subject'},
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:vf,particle:'',role:'verb',en:verb.en+' (honorific)',note:SONKEIGO_IRREG[verb.kana]?'irregular sonkeigo':'お+stem+になります'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, sonkeigo: true,
+      });
+      break;
+    }
+    case 'kenjougo': {
+      // Kenjougo (謙譲語): humble, used for one's OWN actions to lower oneself.
+      // Topic should be "I" (the speaker). Form: irregular substitution if
+      // available, else お+stem+します.
+      // Force topic to "I" since kenjougo is by definition self-referential.
+      topic = TOPICS.find(t => t.en === 'I') || topic;
+      const vf = KENJOUGO_IRREG[verb.kana] || regularKenjougo(verb);
+      const wO = verb.trans && obj && maybe(0.5);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana,role_note:'speaker'},
+        ...(wO?[{role:'object',en:obj.en,kana:obj.kana}]:[]),
+        {role:'verb',en:verb.en+' (humble)',kana:vf,dictKana:verb.kana}];
+      q.answer=tp()+(wO?op():'')+vf;
+      q.grammarTag='kenjougo 謙譲語';
+      q.hint='Kenjougo (humble): describes one\'s own actions humbly. Topic = "I". Form: irregular substitution OR お+ます-stem+します.';
+      q.breakdown=[
+        {jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en,note:'speaker (always I)'},
+        ...(wO?[{jp:obj.kana+'を',particle:'を',role:'object',en:obj.en}]:[]),
+        {jp:vf,particle:'',role:'verb',en:verb.en+' (humble)',note:KENJOUGO_IRREG[verb.kana]?'irregular kenjougo':'お+stem+します'},
+      ];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en,
+        obj: wO ? obj.kana : null, objEn: wO ? obj.en : null,
+        verbBase: verb.en, kenjougo: true,
+      });
+      break;
+    }
+    default: {
+      const vf=masu(verb);
+      q.cards=[{role:'topic',en:topic.en,kana:topic.kana},{role:'verb',en:verb.en,kana:vf}];
+      q.answer=tp()+vf; q.grammarTag='～ます'; q.hint='[topic]は [verb]ます';
+      q.breakdown=[{jp:topic.kana+'は',particle:'は',role:'topic',en:topic.en},{jp:vf,particle:'',role:'verb',en:verb.en}];
+      q.translation = buildTranslation({
+        topic: topic.kana, topicEn: topic.en, verbBase: verb.en,
+      });
+    }
+  }
+  return q;
+}
+
+// ══════════════════════════════════════════════
+//  SESSION / QUESTION LOADING
+// ══════════════════════════════════════════════
+function startSession() {
+  sessionQ=Array.from({length:SESSION_SIZE},genQ);
+  sessionIdx=0;
+  document.getElementById('welcome').classList.add('hidden');
+  const c=document.getElementById('completion');
+  c.classList.remove('visible'); c.style.display='none';
+  document.getElementById('exercise-wrap').classList.remove('hidden');
+  loadQuestion();
+}
+
+const HINT_MAP = {
+  '～ます':'Polite present · [topic]は [object]を [verb]ます',
+  '～ません':'Polite negative · replace ます→ません',
+  '～ました':'Polite past · replace ます→ました',
+  '～ませんでした':'Polite past negative · replace ます→ませんでした',
+  'で particle':'で = where the activity happens',
+  'に particle':'に = destination of movement',
+  'い-adjective':'[topic]は [い-adj]です',
+  'な-adjective':'[topic]は [な-adj]です',
+  '～てください':'て-form + ください = "please do ~"',
+  '～て (connect)':'V1(て) + V2ます = "do A, then B"',
+  '～ている':'て-form + います = ongoing action',
+  '～ないで':'nai-form (drop い) + で = "without doing"',
+  'あげる／もらう':'[giver]は [receiver]に [thing]を あげます',
+  '～たい':'ます stem + たいです = "want to do"',
+  'potential form':'る→られます · う→e-row+ます · する→できます',
+  '～ましょう':'ます-stem + ましょう = "let\'s do ~"',
+  '～たら':'Plain-past form + ら = "if/when ~"',
+  // N3.1
+  '～なら':'Plain dict form + なら = "if (assuming X)"',
+  '～と (whenever)':'Plain dict form + と = "whenever / if (general truth)"',
+  '～かもしれない':'Plain dict form + かもしれない = "might / maybe"',
+  '～でしょう':'Plain dict form + でしょう = "probably / I think"',
+  '～ながら':'ます-stem + ながら = "while doing X, Y"',
+  '～たことがある':'Plain past + ことがあります = "have ~ed before"',
+  '～ようになる':'Plain dict form + ようになる = "come to / become able to"',
+  // N3.2
+  'passive 受身':'Passive: る→られる, う→a-row+れる. [topic]は [agent]に [V-passive].',
+  // N3.3
+  'causative 使役':'Causative: る→させる, う→a-row+せる. [causer]は [causee]に [V-causative].',
+  'caus-pass 使役受身':'Causative + passive: causative form + られる. [topic]は [causer]に [V-caus-pass].',
+  // N3.4
+  'sonkeigo 尊敬語':'Honorific (respectful): irregular substitutions OR お+ます-stem+になります.',
+  'kenjougo 謙譲語':'Humble (lowering self): irregular substitutions OR お+ます-stem+します. Topic = "I".',
+};
+
+function loadQuestion() {
+  if(sessionIdx>=SESSION_SIZE){showCompletion();return;}
+  answered=false; hintShown=false;
+  currentQ=sessionQ[sessionIdx];
+  document.getElementById('tag-lesson').textContent=currentQ.lessonTag;
+  document.getElementById('tag-grammar').textContent=currentQ.grammarTag;
+  document.getElementById('sentence-card').className='sentence-card';
+  document.getElementById('feedback').innerHTML='';
+  document.getElementById('hint-text').className='hint-text';
+
+  // Build a rich hint: grammar rule + canonical order for THIS question's card set
+  const roleOrder = ['topic','time','location','target','object','verb','verb2'];
+  const presentRoles = currentQ.cards
+    .map(c => c.role.replace(/\s.*/, '').toLowerCase())
+    .filter(r => roleOrder.includes(r));
+  // Sort into canonical order
+  presentRoles.sort((a,b) => roleOrder.indexOf(a) - roleOrder.indexOf(b));
+  const canonLabel = {
+    'topic':'[topic]は', 'time':'[time]', 'location':'[location]で',
+    'target':'[recipient]に', 'object':'[object]を',
+    'verb':'[verb]', 'verb2':'[verb 2]'
+  };
+  const orderStr = presentRoles.map(r => canonLabel[r] || r).join(' → ');
+  document.getElementById('hint-text').innerHTML =
+    `<strong>Expected word order:</strong> ${orderStr}<br>${currentQ.hint}`;
+
+  const wc=document.getElementById('word-cards');
+  wc.innerHTML='';
+  [...currentQ.cards].sort(()=>Math.random()-0.5).forEach(card=>{
+    const roleKey=card.role.replace(/\s.*/,'').replace(/[^a-z]/gi,'');
+    const d=document.createElement('div');
+    d.className=`word-card wc-${roleKey}`;
+    // dictKana = dictionary/plain form for the hint; kana = conjugated answer form
+    const showKana = card.dictKana !== undefined ? card.dictKana : card.kana;
+    d.innerHTML=`<div class="wc-role">${card.role}</div><div class="wc-en">${card.en}</div><div class="wc-jp${cardDisplay==='en'?' hide':''}">${showKana}</div>`;
+    wc.appendChild(d);
+  });
+
+  document.getElementById('grammar-hint').innerHTML=
+    `<strong>${currentQ.grammarTag}</strong> — ${HINT_MAP[currentQ.grammarTag]||''}`;
+
+  rawBuf = '';
+  const inp=document.getElementById('jp-input');
+  inp.value=''; inp.className='jp-input';
+  const btn=document.getElementById('btn-check');
+  btn.textContent='Check ↵'; btn.className='btn-check'; btn.onclick=checkAnswer;
+  updateProgress();
+  setTimeout(()=>inp.focus(),50);
+}
+
+// ══════════════════════════════════════════════
+//  INPUT HANDLING
+//
+//  Key insight: we NEVER read back inp.value to get the romaji,
+//  because it already contains converted kana. Instead we maintain
+//  a separate `rawBuf` string of the user's raw keystrokes.
+//  On each keypress we re-convert the whole rawBuf from scratch.
+//  This way, typing 'n' then 'i' reconverts 'ni' → に (not んい).
+//
+//  Case sensitivity:
+//    lowercase letters → hiragana   (na → な)
+//    UPPERCASE letters → katakana   (NA → ナ)
+//    Hyphen `-` after katakana     → ー
+// ══════════════════════════════════════════════
+let rawBuf = '';
+
+// ════════════════════════════════════════════════════════════════
+// INPUT HANDLING — supports BOTH input modes:
+//
+//   1. Romaji (e.g. desktop QWERTY, default mobile English keyboard)
+//      User types Latin letters → we intercept each key, append to rawBuf,
+//      and re-render via toKana() conversion. UPPERCASE = katakana.
+//
+//   2. Direct kana (e.g. iOS/Android Japanese IME, macOS Kotoeri)
+//      User types romaji that the IME converts to kana before it reaches us.
+//      In this case the keys arrive as actual kana characters — we accept
+//      them as-is and append to rawBuf without conversion.
+//
+// We distinguish modes by inspecting the inserted character. ASCII Latin
+// letters and the hyphen go through the romaji path; anything else (kana,
+// kanji-like chars, etc.) is accepted directly. This means a user with a
+// Japanese IME enabled CAN switch modes mid-sentence freely.
+// ════════════════════════════════════════════════════════════════
+
+// True if the IME is currently composing input (between compositionstart
+// and compositionend). During composition we leave the input alone — the
+// IME owns it. We sync rawBuf when composition ends.
+let imeComposing = false;
+
+function isLatinLetterOrHyphen(ch) {
+  return /^[A-Za-z\-]$/.test(ch);
+}
+
+function handleKey(e) {
+  // Enter: submit / advance — but ignore Enter that ends an IME composition
+  if (e.key === 'Enter') {
+    if (e.isComposing || imeComposing) return;   // let IME finish
+    e.preventDefault();
+    if (!answered) checkAnswer(); else nextQ();
+    return;
+  }
+
+  // During IME composition: don't intercept anything. Let the IME work.
+  if (e.isComposing || imeComposing) return;
+
+  const inp = document.getElementById('jp-input');
+
+  // Backspace handling — only intercept if our rawBuf is the source of truth.
+  // If the user is typing direct kana via IME, the input element manages its
+  // own value, so we let backspace flow through naturally and re-sync on input.
+  if (e.key === 'Backspace') {
+    // If rawBuf ends with a multi-char romaji sequence that maps to a single
+    // kana, we want backspace to remove just one romaji char — so we manage
+    // it ourselves when the input value matches our rawBuf-based prediction.
+    const expectedFromBuf = toKana(rawBuf);
+    if (inp.value === expectedFromBuf) {
+      e.preventDefault();
+      rawBuf = rawBuf.slice(0, -1);
+      inp.value = toKana(rawBuf);
+      return;
+    }
+    // Otherwise (direct-kana mode) let the browser handle backspace normally;
+    // the input event will fire and we'll sync rawBuf there.
+    return;
+  }
+
+  // Single printable character
+  if (e.key.length === 1) {
+    if (isLatinLetterOrHyphen(e.key)) {
+      // Romaji mode: intercept, append to rawBuf, re-render via toKana()
+      e.preventDefault();
+      rawBuf += e.key;
+      inp.value = toKana(rawBuf);
+    }
+    // Non-Latin character (kana, etc.): let the browser insert it; the input
+    // event will sync rawBuf afterwards.
+  }
+}
+
+// Sync rawBuf when the input value changes via paths other than our keydown
+// handler — IME composition end, paste, autocorrect (we disabled it but
+// just in case), undo, etc.
+function handleInput(e) {
+  // During composition the value changes char-by-char as the IME suggests;
+  // wait for compositionend before syncing.
+  if (e.isComposing) return;
+  const inp = e.target;
+  const v = inp.value;
+  // Decide: is this still pure romaji-derived (toKana(rawBuf) === v), or
+  // has direct kana been mixed in?
+  if (toKana(rawBuf) === v) return;  // already in sync, our keydown handled it
+  // Direct-kana / mixed input: adopt the input value as the source of truth.
+  // Set rawBuf to the input value so future toKana() calls return it.
+  // (toKana is a no-op on already-kana characters, so this is safe.)
+  rawBuf = v;
+}
+
+function handleCompStart() { imeComposing = true; }
+function handleCompEnd(e) {
+  imeComposing = false;
+  // Adopt the IME's committed value into rawBuf
+  rawBuf = e.target.value;
+}
+
+function checkAnswer(){
+  if(answered)return;
+  const inp  = document.getElementById('jp-input');
+  // Strip whitespace, sentence-ending punctuation, AND Japanese honorifics
+  // from both sides before comparison. Students learn from Genki L1 to attach
+  // さん (and sometimes ちゃん, くん, せんせい) to people's names, so typing
+  // "メアリーさん" for a Mary card should count the same as "メアリー".
+  //
+  // The expected answer uses the bare name but we normalise both sides by
+  // removing the suffix, so: メアリーさん = メアリー, and けんくん = けん.
+  const norm = str => str
+    .replace(/\s+/g,'')
+    .replace(/[.。．、,！!？?]/g,'')
+    // Remove honorifics that follow a name. Listed longest-first to avoid
+    // partial matches (e.g. せんせい before さん).
+    .replace(/せんせい/g,'')
+    .replace(/さん/g,'')
+    .replace(/ちゃん/g,'')
+    .replace(/くん/g,'')
+    .replace(/さま/g,'')
+    .replace(/様/g,'');
+  const user = norm(toKana(rawBuf));
+  const cor  = norm(currentQ.answer);
+  const ok   = user === cor;
+  answered=true; sessionIdx++;
+  if(ok){stats.correct++;stats.streak++;}else{stats.wrong++;stats.streak=0;}
+  stats.total++;
+  inp.className='jp-input '+(ok?'correct':'wrong');
+  document.getElementById('sentence-card').className='sentence-card '+(ok?'correct':'wrong');
+
+  const fb=document.getElementById('feedback');
+
+  // Build translation block (always rendered, visibility controlled by CSS display)
+  const xl = currentQ.translation || {literal:'',natural:''};
+  const xlStyle = showTranslation ? '' : 'style="display:none"';
+  const translationHtml = `
+    <div class="translation-box" id="translation-box" ${xlStyle}>
+      <div class="xl-title">Translation</div>
+      <div class="xl-row"><div class="xl-label">Natural</div><div class="xl-text natural">${xl.natural}</div></div>
+      <div class="xl-row"><div class="xl-label">Literal</div><div class="xl-text literal">${xl.literal}</div></div>
+    </div>`;
+
+  // Per-row analysis using PARTICLE-BASED CHUNKING.
+  // Instead of advancing by expected-token length (which misaligns when the
+  // user mistypes a word), we split both answers into chunks at particle
+  // boundaries. This keeps the verb row (and later chunks) aligned even when
+  // a preceding word is mistyped by +/-1 character.
+  //
+  // Strategy:
+  //   1. Walk the breakdown rows. For each row with a particle, find that
+  //      particle's occurrence in the user's raw input (in order).
+  //   2. Each chunk is [start of previous particle end .. position of this
+  //      particle, inclusive].
+  //   3. For rows without a particle (time word, verb), the chunk runs until
+  //      the next particle is found in the user's input (or to end of input).
+  //
+  // We use RAW user input for display, NORMALISED for differs-check only.
+  const userRaw  = toKana(rawBuf);
+  const userNorm = norm(userRaw);
+  const rowAnalysis = [];   // parallel to currentQ.breakdown
+
+  {
+    // Build a list of particle positions in the user's RAW input, matching
+    // each breakdown row that has a particle to the next occurrence of that
+    // particle in the user's input (left-to-right). If not found, null.
+    const breakdown = currentQ.breakdown;
+    const particlePositions = new Array(breakdown.length).fill(null);
+    let searchFrom = 0;
+    for (let i = 0; i < breakdown.length; i++) {
+      const p = breakdown[i].particle;
+      if (!p) continue;
+      // Find next occurrence of this particle from searchFrom onwards.
+      // For は as topic marker, we must be careful not to match は inside a
+      // word like はな (flower). But in our expected sentences, は always
+      // appears after a noun/name, so position-in-order + particle-char
+      // matching is usually fine. We accept the first occurrence.
+      const idx = userRaw.indexOf(p, searchFrom);
+      if (idx >= 0) {
+        particlePositions[i] = idx;
+        searchFrom = idx + p.length;
+      }
+    }
+
+    // Now build chunk boundaries. chunkStart tracks where the current chunk
+    // begins in the RAW user input; we update it after each particle-bearing
+    // row's chunk is consumed. Non-particle rows get the chunk between the
+    // previous boundary and the NEXT particle (or end of input).
+    let chunkStart = 0;
+    for (let i = 0; i < breakdown.length; i++) {
+      const row = breakdown[i];
+      const expectedJp = norm(row.jp);
+      let userSliceRaw = '';
+      let chunkEnd;
+
+      if (row.particle && particlePositions[i] !== null) {
+        // Chunk ends right after this row's particle
+        chunkEnd = particlePositions[i] + row.particle.length;
+        userSliceRaw = userRaw.slice(chunkStart, chunkEnd);
+        chunkStart = chunkEnd;
+      } else if (row.particle && particlePositions[i] === null) {
+        // Particle was not found — nothing matched this row
+        userSliceRaw = '';
+        // Don't advance chunkStart — this particle's chunk is missing entirely
+      } else {
+        // No particle on this row (e.g. time word, verb).
+        // Its chunk extends to the next particle boundary (or end of input).
+        let nextBoundary = userRaw.length;
+        for (let j = i + 1; j < breakdown.length; j++) {
+          if (particlePositions[j] !== null) {
+            nextBoundary = particlePositions[j];
+            break;
+          }
+        }
+        chunkEnd = nextBoundary;
+        userSliceRaw = userRaw.slice(chunkStart, chunkEnd);
+        chunkStart = chunkEnd;
+      }
+
+      // Compare on NORMALISED strings for the differs-check (so メアリーさん
+      // matches メアリー) and for particle correctness.
+      const userSliceNorm = norm(userSliceRaw);
+      const differs = userSliceNorm !== expectedJp;
+
+      // Particle status: true if this row's particle was found AND at the
+      // end of the chunk (which, by construction, it will be if found).
+      let status = null;
+      if (row.particle) {
+        status = particlePositions[i] !== null;
+      }
+
+      rowAnalysis.push({status, userJp: userSliceRaw, differs});
+    }
+  }
+
+  if(ok){
+    fb.innerHTML=`<div class="feedback feedback-correct"><div class="fb-label">✓ Correct!</div><div class="fb-sentence">${currentQ.answer}</div>${translationHtml}</div>`;
+  } else {
+    let bd=`<div class="breakdown"><div class="bd-title">Breakdown</div>`;
+    currentQ.breakdown.forEach((r, i) => {
+      const a = rowAnalysis[i] || {};
+      const status = a.status;
+      const pClass = status === null ? 'bd-particle'
+                   : status === true ? 'bd-particle bd-particle-ok'
+                   : 'bd-particle bd-particle-bad';
+      // If the user's token at this row's position differs from the expected,
+      // show struck-through user input before the correct one. Empty user
+      // input is shown as a muted dash so it's clear something was missing.
+      let jpCell;
+      if (a.differs) {
+        const userDisplay = a.userJp ? a.userJp : '—';
+        jpCell = `<div class="bd-jp"><span class="bd-user-wrong">${userDisplay}</span> <span class="bd-arrow">→</span> <span class="bd-correct">${r.jp}</span></div>`;
+      } else {
+        jpCell = `<div class="bd-jp">${r.jp}</div>`;
+      }
+      bd+=`<div class="bd-row">${jpCell}<div class="${pClass}">${r.particle||''}</div><div class="bd-role">${r.role}</div><div class="bd-en">${r.en}</div>${r.note?`<div class="bd-note"> — ${r.note}</div>`:''}</div>`;
+    });
+    bd+=`</div>`;
+    fb.innerHTML=`<div class="feedback feedback-wrong"><div class="fb-label">✗ Not quite</div><div class="fb-sentence">${currentQ.answer}</div><div class="fb-yours">Your answer: ${inp.value||'(empty)'}</div>${translationHtml}${bd}</div>`;
+  }
+  const btn=document.getElementById('btn-check');
+  btn.textContent='Next →'; btn.className='btn-check next-btn'; btn.onclick=nextQ;
+  updateStats(); updateProgress();
+}
+
+function nextQ(){loadQuestion();}
+function skipQ(){rawBuf='';stats.wrong++;stats.streak=0;stats.total++;sessionIdx++;updateStats();loadQuestion();}
+function toggleHint(){
+  hintShown=!hintShown;
+  document.getElementById('hint-text').className='hint-text'+(hintShown?' visible':'');
+}
+
+function updateStats(){
+  document.getElementById('s-correct').textContent=stats.correct;
+  document.getElementById('s-wrong').textContent=stats.wrong;
+  document.getElementById('s-streak').textContent=stats.streak+(stats.streak>=3?'🔥':'');
+  const p=stats.total?Math.round(stats.correct/stats.total*100):null;
+  const el=document.getElementById('s-acc');
+  el.textContent=p!==null?p+'%':'—';
+  el.className='stat-val'+(p===null?'':p>=80?' good':p>=50?' fire':' bad');
+}
+function updateProgress(){
+  const p=Math.round(sessionIdx/SESSION_SIZE*100);
+  document.getElementById('prog-fill').style.width=p+'%';
+  document.getElementById('prog-txt').textContent=`${sessionIdx} / ${SESSION_SIZE}`;
+}
+function showCompletion(){
+  document.getElementById('exercise-wrap').classList.add('hidden');
+  const c=document.getElementById('completion');
+  c.style.display='block'; c.classList.add('visible');
+  const p=stats.total?Math.round(stats.correct/stats.total*100):0;
+  document.getElementById('comp-score').textContent=p+'%';
+  const m=p>=90?'素晴らしい！Excellent!':p>=70?'よくできました！Well done!':p>=50?'もう少し！Keep going!':'がんばれ！Keep practicing!';
+  document.getElementById('comp-msg').textContent=m+` (${stats.correct}/${stats.total} correct)`;
+}
+
+buildLessonGrid();
+updateGrammarInfo();
+updateStats();
+updateProgress();
+
+// Mobile init: collapse the canonical-order panel by default on narrow screens.
+// User can re-open via the disclosure caret. Desktop keeps it open.
+(function mobileInit() {
+  if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) {
+    const orderPanel = document.getElementById('order-panel');
+    if (orderPanel) orderPanel.removeAttribute('open');
+  }
+
+  // Tap-elsewhere closes the info tooltip on mobile (where it's tap-to-toggle).
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('.info-icon.active').forEach(btn => {
+      if (!btn.contains(e.target)) btn.classList.remove('active');
+    });
+  });
+})();
+</script>
+</body>
+</html>
