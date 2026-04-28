@@ -332,6 +332,16 @@ h1 em { font-style: normal; color: var(--red); }
 }
 .btn-skip:hover { border-color: var(--red); color: var(--red); }
 
+.btn-reset {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600;
+  padding: 4px 12px; border-radius: 20px; border: 1.5px solid var(--ruled);
+  background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-reset:hover { border-color: var(--blue); color: var(--blue); }
+/* Hidden when no session is active (welcome / completion screens) */
+.btn-reset.hidden { display: none; }
+
 .feedback { margin-top: 14px; animation: fadeSlide 0.25s ease; }
 @keyframes fadeSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
 .feedback-correct {
@@ -522,7 +532,7 @@ h1 em { font-style: normal; color: var(--red); }
 
   /* Hint row buttons */
   .hint-row { flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-  .btn-hint, .btn-skip {
+  .btn-hint, .btn-skip, .btn-reset {
     min-height: 40px;
     padding: 0 14px;
     font-size: 13px;
@@ -637,7 +647,7 @@ h1 em { font-style: normal; color: var(--red); }
       <h1>Sentence <em>Builder</em></h1>
       <span class="jp-title">文作り練習</span>
     </div>
-    <p class="subtitle">Build grammatically correct Japanese sentences · JLPT N5 &amp; N4 &amp; N3 · Frequency-based vocabulary</p>
+    <p class="subtitle">Build grammatically correct Japanese sentences · JLPT N5 &amp; N4 · Frequency-based vocabulary</p>
   </header>
 
   <div class="lesson-panel">
@@ -676,8 +686,8 @@ h1 em { font-style: normal; color: var(--red); }
       <strong>Heads up:</strong> Japanese word order is actually flexible — many other arrangements
       are grammatically valid. For drill purposes this app enforces the <em>canonical</em> or "neutral"
       order shown above, which is what textbooks and teachers typically present as standard. As you
-      advance in your studies, you'll encounter real-world sentences that rearrange these elements for emphasis, topic
-      shift, or style, which you won't find in this app — and that's fine. This app is just training your default instinct and doing drills.
+      advance, you'll encounter real-world sentences that rearrange these elements for emphasis, topic
+      shift, or style — and that's fine. This app is just training your default instinct.
     </div>
   </details>
 
@@ -709,6 +719,7 @@ h1 em { font-style: normal; color: var(--red); }
   <div class="progress-row">
     <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
     <div class="progress-txt" id="prog-txt">0 / 0</div>
+    <button class="btn-reset" id="btn-reset" onclick="resetSession()" title="Restart practice at the current level">⟲ Reset</button>
   </div>
 
   <div class="welcome" id="welcome">
@@ -723,12 +734,12 @@ h1 em { font-style: normal; color: var(--red); }
       Double consonant = っ/ッ (<em>kitte</em> → きって)<br>
       Particles: を = <strong>wo</strong> · は = <strong>ha</strong> · へ = <strong>he</strong>
     </div>
-    <p>Japanese sentences in this app follow a strict canonical order — see the guide above. Choose your JLPT level, then start!</p>
+    <p>Japanese sentences follow a strict canonical order — see the guide above. Choose your JLPT level, then start!</p>
     <button class="btn-start" onclick="startSession()">Start Practice →</button>
     <div class="attribution">
       <strong>Attribution:</strong> Grammar progression informed by
       <a href="https://guidetojapanese.org/learn/grammar" target="_blank" rel="noopener">Tae Kim's Guide to Japanese Grammar</a>
-      (CC BY 3.0), structured around JLPT N5/N4/N3 levels.
+      (CC BY 3.0), structured around JLPT N5/N4 levels.
       Vocabulary is hand-curated for grammar-pattern compatibility, with selection
       weighted by JPDB v2.2 frequency rankings (CC BY) so high-frequency words appear
       more often in generated sentences.
@@ -1544,7 +1555,19 @@ function buildLessonGrid() {
       + (isN3 ? ' book3' : '')
       + (level === selectedLevel ? ' selected' : '');
     b.textContent = level;
-    b.onclick = ()=>{ selectedLevel=level; buildLessonGrid(); updateGrammarInfo(); };
+    b.onclick = ()=>{
+      if (level === selectedLevel) return;  // no-op when re-clicking current level
+      selectedLevel = level;
+      buildLessonGrid();
+      updateGrammarInfo();
+      // If a session is in progress (exercise-wrap visible), restart at the
+      // new level. Otherwise the user is on welcome/completion and will start
+      // fresh anyway when they click Start Practice.
+      const exerciseWrap = document.getElementById('exercise-wrap');
+      if (exerciseWrap && !exerciseWrap.classList.contains('hidden')) {
+        resetSession();
+      }
+    };
     g.appendChild(b);
   }
 }
@@ -3252,10 +3275,42 @@ function genQ() {
 function startSession() {
   sessionQ=Array.from({length:SESSION_SIZE},genQ);
   sessionIdx=0;
+  // Reset stats too — startSession is called at first launch and from
+  // "Practice Again" on the completion screen, both of which warrant zeroed stats.
+  stats = {correct:0,wrong:0,streak:0,total:0};
+  updateStats();
   document.getElementById('welcome').classList.add('hidden');
   const c=document.getElementById('completion');
   c.classList.remove('visible'); c.style.display='none';
   document.getElementById('exercise-wrap').classList.remove('hidden');
+  // Show the reset button whenever a session is active
+  const reset = document.getElementById('btn-reset');
+  if (reset) reset.classList.remove('hidden');
+  loadQuestion();
+}
+
+// Restart the current session at the (possibly newly-selected) level.
+// Used when:
+//   - User taps the explicit ⟲ Reset button mid-session
+//   - User taps a different level button while a session is in progress
+//   - Any time we need to clear progress and regenerate questions
+function resetSession() {
+  // Regenerate questions for the (now-current) level. genQ() reads
+  // selectedLevel internally so this picks up any level change automatically.
+  sessionQ = Array.from({length:SESSION_SIZE}, genQ);
+  sessionIdx = 0;
+  // Zero out stats so streak/accuracy reflect the fresh session
+  stats = {correct:0,wrong:0,streak:0,total:0};
+  updateStats();
+  // Make sure exercise UI is visible and any completion / feedback is cleared
+  const c = document.getElementById('completion');
+  c.classList.remove('visible'); c.style.display='none';
+  document.getElementById('exercise-wrap').classList.remove('hidden');
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('feedback').innerHTML = '';
+  // Reset button stays visible since we're still in a session
+  const reset = document.getElementById('btn-reset');
+  if (reset) reset.classList.remove('hidden');
   loadQuestion();
 }
 
@@ -3652,12 +3707,20 @@ function showCompletion(){
   document.getElementById('comp-score').textContent=p+'%';
   const m=p>=90?'素晴らしい！Excellent!':p>=70?'よくできました！Well done!':p>=50?'もう少し！Keep going!':'がんばれ！Keep practicing!';
   document.getElementById('comp-msg').textContent=m+` (${stats.correct}/${stats.total} correct)`;
+  // Hide reset button on completion — "Practice Again" handles restart
+  const reset = document.getElementById('btn-reset');
+  if (reset) reset.classList.add('hidden');
 }
 
 buildLessonGrid();
 updateGrammarInfo();
 updateStats();
 updateProgress();
+// Reset button starts hidden — only visible during an active session
+{
+  const reset = document.getElementById('btn-reset');
+  if (reset) reset.classList.add('hidden');
+}
 
 // Mobile init: collapse the canonical-order panel by default on narrow screens.
 // User can re-open via the disclosure caret. Desktop keeps it open.
